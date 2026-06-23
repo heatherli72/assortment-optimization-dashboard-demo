@@ -41,7 +41,7 @@ const groups: FrameworkGroup[] = [
 
 export function OverviewPage({ onNavigate }: OverviewPageProps) {
   return (
-    <main className="page overview-page">
+    <main className="page overview-page cover-page">
       <section className="page-hero">
         <div>
           <p className="eyebrow">Analytics framework</p>
@@ -58,9 +58,15 @@ export function OverviewPage({ onNavigate }: OverviewPageProps) {
             <h3>{group.title}</h3>
             {group.kind === "pages"
               ? group.pages.map((page) => (
-                  <button key={`${group.title}-${page.id}`} type="button" onClick={() => onNavigate(page.id)}>
+                  <button
+                    className="framework-module"
+                    key={`${group.title}-${page.id}`}
+                    type="button"
+                    onClick={() => onNavigate(page.id)}
+                  >
                     <span>{page.title}</span>
                     <small>{page.description}</small>
+                    <b aria-hidden="true">Open analysis &gt;</b>
                   </button>
                 ))
               : group.questions.map((question) => (

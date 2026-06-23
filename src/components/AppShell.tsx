@@ -11,12 +11,12 @@ interface AppShellProps {
 export function AppShell({ currentPageId, onNavigate, children }: AppShellProps) {
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <div className="topbar-title">
+      <aside className="sidebar" aria-label="Dashboard navigation">
+        <div className="sidebar-title">
           <p className="topbar-kicker">Dashboard demo</p>
           <h1>Assortment Optimization</h1>
         </div>
-        <nav aria-label="Dashboard pages" className="topnav">
+        <nav aria-label="Dashboard pages" className="side-nav">
           {dashboardPages.map((page) => (
             <button
               key={page.id}
@@ -28,8 +28,8 @@ export function AppShell({ currentPageId, onNavigate, children }: AppShellProps)
             </button>
           ))}
         </nav>
-      </header>
-      {children}
+      </aside>
+      <div className="app-main">{children}</div>
     </div>
   );
 }

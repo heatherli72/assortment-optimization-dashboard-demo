@@ -53,7 +53,61 @@ select:focus-visible {
 }
 
 .app-shell {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
   min-height: 100vh;
+}
+
+.sidebar {
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  left: 0;
+  padding: var(--space-4);
+  position: sticky;
+  top: 0;
+  z-index: 35;
+}
+
+.sidebar-title h1 {
+  font-size: 22px;
+  letter-spacing: 0;
+  line-height: 1.12;
+  margin: 0;
+}
+
+.side-nav {
+  align-content: start;
+  display: grid;
+  gap: 6px;
+  margin-top: var(--space-5);
+}
+
+.side-nav button {
+  background: transparent;
+  border-left: 3px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-muted);
+  min-height: 38px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.side-nav button:hover {
+  background: var(--color-surface-2);
+}
+
+.side-nav button[aria-current="page"] {
+  background: var(--color-strategy-soft);
+  border-left-color: var(--color-strategy);
+  color: var(--color-strategy);
+  font-weight: 800;
+}
+
+.app-main {
+  min-width: 0;
 }
 
 .topbar {
@@ -115,10 +169,10 @@ select:focus-visible {
   box-shadow: 0 10px 28px rgba(55, 67, 105, 0.07);
   display: grid;
   gap: var(--space-3);
-  grid-template-columns: repeat(5, minmax(150px, 1fr));
-  padding: var(--space-3) var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  padding: 10px var(--space-4);
   position: sticky;
-  top: 73px;
+  top: 0;
   z-index: 20;
 }
 
@@ -138,10 +192,14 @@ select:focus-visible {
 
 .page {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-4);
   margin: 0 auto;
   max-width: 1480px;
-  padding: var(--space-5);
+  padding: var(--space-4);
+}
+
+.cover-page {
+  padding-top: var(--space-5);
 }
 
 .page-hero,
@@ -215,6 +273,23 @@ select:focus-visible {
   text-align: left;
 }
 
+.framework-module {
+  border-color: rgba(255, 255, 255, 0.95) !important;
+  cursor: pointer;
+  position: relative;
+}
+
+.framework-module:hover {
+  box-shadow: 0 12px 28px rgba(55, 67, 105, 0.12);
+  transform: translateY(-1px);
+}
+
+.framework-module b {
+  color: var(--color-strategy);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
 .framework-column button span,
 .framework-question span {
   font-size: 17px;
@@ -249,6 +324,46 @@ select:focus-visible {
   gap: 6px;
 }
 
+.vertical-metric-panel {
+  align-self: start;
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  position: sticky;
+  top: var(--space-4);
+  width: 172px;
+  z-index: 15;
+}
+
+.vertical-metric-panel .metric-switch > div {
+  display: grid;
+}
+
+.analysis-page {
+  align-items: start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 172px;
+}
+
+.analysis-topline {
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: var(--space-3);
+  justify-content: space-between;
+  padding: 10px var(--space-4);
+}
+
+.analysis-page > :not(.vertical-metric-panel) {
+  grid-column: 1;
+}
+
+.analysis-topline p {
+  color: var(--color-muted);
+  margin: 0;
+}
+
 .metric-switch button,
 .scope-button {
   background: var(--color-surface-2);
@@ -280,8 +395,8 @@ select:focus-visible {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: 0 12px 28px rgba(55, 67, 105, 0.06);
-  min-height: 112px;
-  padding: var(--space-4);
+  min-height: 96px;
+  padding: var(--space-3);
 }
 
 .kpi-card p {
@@ -325,7 +440,7 @@ select:focus-visible {
   box-shadow: var(--shadow-soft);
   min-width: 0;
   overflow: hidden;
-  padding: var(--space-4);
+  padding: var(--space-3);
 }
 
 .chart-panel h3,
@@ -367,6 +482,14 @@ select:focus-visible {
 
 .pareto-bar.segment-c {
   fill: var(--color-plv);
+}
+
+.pareto-bar:hover,
+.scatter-point:hover circle,
+.bubble-point:hover circle {
+  filter: brightness(0.92);
+  stroke: var(--color-ink);
+  stroke-width: 3;
 }
 
 .pareto-line,
@@ -416,7 +539,7 @@ select:focus-visible {
   border-bottom: 1px solid var(--color-border);
   color: var(--color-ink);
   font-size: 13px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   text-align: left;
   vertical-align: top;
 }
@@ -428,6 +551,7 @@ select:focus-visible {
   position: sticky;
   top: 0;
   z-index: 1;
+  min-width: 142px;
 }
 
 .data-table th button {
@@ -435,6 +559,19 @@ select:focus-visible {
   color: inherit;
   font-weight: 800;
   padding: 0;
+}
+
+.column-filter {
+  display: block;
+  font-size: 12px;
+  margin-top: 6px;
+  min-height: 28px;
+  padding: 4px 7px;
+  width: 100%;
+}
+
+.data-table th[draggable="true"] {
+  cursor: grab;
 }
 
 .align-right {
@@ -564,6 +701,20 @@ select:focus-visible {
 }
 
 @media (max-width: 980px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    height: auto;
+    position: static;
+  }
+
+  .side-nav {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
   .topbar {
     grid-template-columns: 1fr;
     position: static;
@@ -586,6 +737,17 @@ select:focus-visible {
 
   .page {
     padding: var(--space-4);
+  }
+
+  .analysis-page {
+    grid-template-columns: 1fr;
+  }
+
+  .vertical-metric-panel {
+    grid-column: 1;
+    grid-row: auto;
+    position: static;
+    width: auto;
   }
 }
 

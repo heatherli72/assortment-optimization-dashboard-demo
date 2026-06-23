@@ -1,7 +1,7 @@
 import { linearScale, paddedExtent } from "./chartUtils";
 
 interface ScatterChartProps {
-  rows: Array<{ id: string; label: string; x: number; y: number; group?: string }>;
+  rows: Array<{ id: string; label: string; x: number; y: number; group?: string; details?: Record<string, string | number> }>;
   xLabel: string;
   yLabel: string;
   reviewZoneLabel?: string;
@@ -37,7 +37,12 @@ export function ScatterChart({ rows, xLabel, yLabel, reviewZoneLabel, xFormatter
           <g key={row.id} className={`scatter-point point-${row.group ?? "neutral"}`}>
             <circle cx={cx} cy={cy} r="6" />
             <text x={cx + 8} y={cy - 8}>{row.label}</text>
-            <title>{`${row.label}: ${xFormatter(row.x)}, ${yFormatter(row.y)}`}</title>
+            <title>{[
+              row.label,
+              `${xLabel}: ${xFormatter(row.x)}`,
+              `${yLabel}: ${yFormatter(row.y)}`,
+              ...Object.entries(row.details ?? {}).map(([key, value]) => `${key}: ${value}`),
+            ].join("\n")}</title>
           </g>
         );
       })}

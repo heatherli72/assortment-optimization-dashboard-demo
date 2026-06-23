@@ -47,9 +47,29 @@ describe("shared dashboard components", () => {
       />,
     );
 
-    await userEvent.click(screen.getByRole("button", { name: "Value" }));
+    await userEvent.click(screen.getByRole("button", { name: /Sort by Value/i }));
     const cells = screen.getAllByRole("cell").map((cell) => cell.textContent);
     expect(cells.slice(0, 2)).toEqual(["A", "8"]);
+  });
+
+  test("data table filters by any column", async () => {
+    render(
+      <DataTable
+        getRowId={(row) => row.name}
+        rows={[
+          { name: "Hydra Serum", value: 8 },
+          { name: "Repair Cream", value: 2 },
+        ]}
+        columns={[
+          { key: "name", header: "Name", value: (row) => row.name, sortValue: (row) => row.name },
+          { key: "value", header: "Value", value: (row) => row.value, sortValue: (row) => row.value },
+        ]}
+      />,
+    );
+
+    await userEvent.type(screen.getByLabelText("Filter Name"), "Hydra");
+    expect(screen.getByText("Hydra Serum")).toBeInTheDocument();
+    expect(screen.queryByText("Repair Cream")).not.toBeInTheDocument();
   });
 
   test("action badges render accessible action labels", () => {

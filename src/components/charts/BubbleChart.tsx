@@ -1,7 +1,7 @@
 import { extent, linearScale, paddedExtent } from "./chartUtils";
 
 interface BubbleChartProps {
-  rows: Array<{ id: string; label: string; x: number; y: number; size: number }>;
+  rows: Array<{ id: string; label: string; x: number; y: number; size: number; details?: Record<string, string | number> }>;
   xLabel: string;
   yLabel: string;
   xFormatter: (value: number) => string;
@@ -32,7 +32,13 @@ export function BubbleChart({ rows, xLabel, yLabel, xFormatter, yFormatter }: Bu
           <g key={row.id} className="bubble-point">
             <circle cx={cx} cy={cy} r={r} />
             <text x={cx + r + 4} y={cy}>{row.label}</text>
-            <title>{`${row.label}: ${xFormatter(row.x)}, ${yFormatter(row.y)}, FLA ${row.size}`}</title>
+            <title>{[
+              row.label,
+              `${xLabel}: ${xFormatter(row.x)}`,
+              `${yLabel}: ${yFormatter(row.y)}`,
+              `FLA Count: ${row.size}`,
+              ...Object.entries(row.details ?? {}).map(([key, value]) => `${key}: ${value}`),
+            ].join("\n")}</title>
           </g>
         );
       })}

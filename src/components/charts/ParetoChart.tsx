@@ -3,6 +3,7 @@ interface ParetoChartProps {
     id: string;
     label: string;
     value: number;
+    contribution?: number;
     cumulativeContribution: number;
     segment: "A" | "B" | "C";
   }>;
@@ -47,6 +48,11 @@ export function ParetoChart({ rows, valueFormatter }: ParetoChartProps) {
               height={barHeight}
               rx="4"
             />
+            <title>{`${row.label}
+Value: ${valueFormatter(row.value)}
+Contribution: ${((row.contribution ?? 0) * 100).toFixed(1)}%
+Cumulative: ${(row.cumulativeContribution * 100).toFixed(1)}%
+ABC: ${row.segment}`}</title>
             <text x={x + barWidth / 2} y={height - 36} textAnchor="end" transform={`rotate(-34 ${x + barWidth / 2} ${height - 36})`}>
               {row.label}
             </text>
@@ -62,7 +68,6 @@ export function ParetoChart({ rows, valueFormatter }: ParetoChartProps) {
         const y = pad.top + innerHeight * (1 - row.cumulativeContribution);
         return <circle key={`${row.id}-point`} className="pareto-point" cx={x} cy={y} r="4" />;
       })}
-      <text x={pad.left} y={18}>Contribution</text>
       <text x={width - 138} y={18}>Cumulative line</text>
     </svg>
   );
