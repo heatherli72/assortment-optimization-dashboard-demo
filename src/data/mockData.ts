@@ -4,10 +4,29 @@ type ProductRecordSeed = Omit<ProductRecord, "timePeriod">;
 type FgSkuRecordSeed = Omit<FgSkuRecord, "timePeriod" | "channelLvl1">;
 type PlvSkuRecordSeed = Omit<
   PlvSkuRecord,
-  "timePeriod" | "channelLvl1" | "channelLvl2Covered"
+  "timePeriod" | "channelLvl1" | "channelCovered" | "channelLvl2Covered"
 > & {
-  channelCovered: string[];
+  channelLvl2Covered: string[];
 };
+
+const plvChannelLvl2Taxonomy = {
+  Retail: ["Retail - Flagship", "Retail - Counter"],
+  Online: ["Online - Brand.com", "Online - Marketplace"],
+  Wholesale: ["Wholesale - Salon", "Wholesale - Distributor"],
+  "Department Store": ["Department Store - Beauty Floor"],
+  "Travel Retail": ["Travel Retail - Airport"],
+} as const;
+
+type PlvChannelLvl1 = keyof typeof plvChannelLvl2Taxonomy;
+
+const channelLvl2Coverage = (...channels: Array<PlvChannelLvl1 | [PlvChannelLvl1, number]>) =>
+  channels.map((channel) => {
+    const [lvl1, variant = 0] = Array.isArray(channel) ? channel : [channel, 0];
+    return plvChannelLvl2Taxonomy[lvl1][variant] ?? plvChannelLvl2Taxonomy[lvl1][0];
+  });
+
+const deriveChannelCovered = (channelLvl2Covered: string[]) =>
+  [...new Set(channelLvl2Covered.map((label) => label.split(" - ")[0]))];
 
 const productTimePeriods: Record<string, string> = {
   "p-serum-core": "2026 R12",
@@ -975,7 +994,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 9000,
     cogsPerMlKg: 0.22,
     lifecycle: "Core",
-    channelCovered: ["Retail", "Online", "Travel Retail"],
+    channelLvl2Covered: channelLvl2Coverage("Retail", "Online", "Travel Retail"),
     sampleType: "Sachet",
   },
   {
@@ -990,7 +1009,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 15000,
     cogsPerMlKg: 0.6,
     lifecycle: "Core",
-    channelCovered: ["Retail", "Online", "Department Store", "Travel Retail"],
+    channelLvl2Covered: channelLvl2Coverage(["Retail", 1], ["Online", 1], "Department Store", "Travel Retail"),
     sampleType: "Travel Size",
   },
   {
@@ -1005,7 +1024,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 8000,
     cogsPerMlKg: 0.34,
     lifecycle: "Tail",
-    channelCovered: ["Retail"],
+    channelLvl2Covered: channelLvl2Coverage("Retail"),
     sampleType: "Sachet",
   },
   {
@@ -1020,7 +1039,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 12000,
     cogsPerMlKg: 0.95,
     lifecycle: "Tail",
-    channelCovered: ["Retail", "Department Store"],
+    channelLvl2Covered: channelLvl2Coverage(["Retail", 1], "Department Store"),
     sampleType: "Deluxe Sample",
   },
   {
@@ -1035,7 +1054,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 7000,
     cogsPerMlKg: 0.16,
     lifecycle: "Growth",
-    channelCovered: ["Online", "Retail", "Pharmacy"],
+    channelLvl2Covered: channelLvl2Coverage("Online", "Retail", ["Wholesale", 0]),
     sampleType: "Sachet",
   },
   {
@@ -1050,7 +1069,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 15000,
     cogsPerMlKg: 0.42,
     lifecycle: "Growth",
-    channelCovered: ["Online", "Retail", "Travel Retail", "Pharmacy", "Department Store"],
+    channelLvl2Covered: channelLvl2Coverage(["Online", 1], ["Retail", 1], "Travel Retail", ["Wholesale", 1], "Department Store"),
     sampleType: "Travel Size",
   },
   {
@@ -1065,7 +1084,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 4200,
     cogsPerMlKg: 0.23,
     lifecycle: "Mature",
-    channelCovered: ["Retail", "Online"],
+    channelLvl2Covered: channelLvl2Coverage("Retail", "Online"),
     sampleType: "Deluxe Sample",
   },
   {
@@ -1080,7 +1099,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 3800,
     cogsPerMlKg: 0.24,
     lifecycle: "Mature",
-    channelCovered: ["Retail", "Pharmacy", "Online"],
+    channelLvl2Covered: channelLvl2Coverage(["Retail", 1], ["Wholesale", 0], ["Online", 1]),
     sampleType: "Travel Size",
   },
   {
@@ -1095,7 +1114,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 5000,
     cogsPerMlKg: 0.49,
     lifecycle: "Tail",
-    channelCovered: ["Online"],
+    channelLvl2Covered: channelLvl2Coverage("Online"),
     sampleType: "Sachet",
   },
   {
@@ -1110,7 +1129,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 10500,
     cogsPerMlKg: 1.02,
     lifecycle: "Tail",
-    channelCovered: ["Online", "Department Store"],
+    channelLvl2Covered: channelLvl2Coverage(["Online", 1], "Department Store"),
     sampleType: "Deluxe Sample",
   },
   {
@@ -1125,7 +1144,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 8500,
     cogsPerMlKg: 0.19,
     lifecycle: "Core",
-    channelCovered: ["Retail", "Online", "Pharmacy", "Travel Retail"],
+    channelLvl2Covered: channelLvl2Coverage("Retail", "Online", ["Wholesale", 0], "Travel Retail"),
     sampleType: "Sachet",
   },
   {
@@ -1140,7 +1159,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 17500,
     cogsPerMlKg: 0.74,
     lifecycle: "Core",
-    channelCovered: ["Retail", "Online", "Pharmacy", "Travel Retail", "Department Store"],
+    channelLvl2Covered: channelLvl2Coverage(["Retail", 1], ["Online", 1], ["Wholesale", 1], "Travel Retail", "Department Store"),
     sampleType: "Travel Size",
   },
   {
@@ -1155,7 +1174,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 7000,
     cogsPerMlKg: 0.41,
     lifecycle: "Growth",
-    channelCovered: ["Department Store", "Online"],
+    channelLvl2Covered: channelLvl2Coverage("Department Store", "Online"),
     sampleType: "Sachet",
   },
   {
@@ -1170,7 +1189,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 12000,
     cogsPerMlKg: 1.18,
     lifecycle: "Growth",
-    channelCovered: ["Department Store", "Online", "Travel Retail"],
+    channelLvl2Covered: channelLvl2Coverage("Department Store", ["Online", 1], "Travel Retail"),
     sampleType: "Travel Size",
   },
   {
@@ -1185,7 +1204,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 3900,
     cogsPerMlKg: 0.14,
     lifecycle: "Mature",
-    channelCovered: ["Retail", "Online", "Pharmacy"],
+    channelLvl2Covered: channelLvl2Coverage("Retail", "Online", ["Wholesale", 0]),
     sampleType: "Sachet",
   },
   {
@@ -1200,7 +1219,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 5100,
     cogsPerMlKg: 0.29,
     lifecycle: "Mature",
-    channelCovered: ["Retail", "Online", "Department Store", "Pharmacy"],
+    channelLvl2Covered: channelLvl2Coverage(["Retail", 1], ["Online", 1], "Department Store", ["Wholesale", 1]),
     sampleType: "Travel Size",
   },
   {
@@ -1215,7 +1234,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 2800,
     cogsPerMlKg: 0.32,
     lifecycle: "Exit",
-    channelCovered: ["Online"],
+    channelLvl2Covered: channelLvl2Coverage("Online"),
     sampleType: "Sachet",
   },
   {
@@ -1230,7 +1249,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 9200,
     cogsPerMlKg: 0.97,
     lifecycle: "Exit",
-    channelCovered: ["Online"],
+    channelLvl2Covered: channelLvl2Coverage(["Online", 1]),
     sampleType: "Travel Size",
   },
   {
@@ -1245,7 +1264,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 2200,
     cogsPerMlKg: 0.28,
     lifecycle: "Core",
-    channelCovered: ["Department Store", "Online"],
+    channelLvl2Covered: channelLvl2Coverage("Department Store", "Online"),
     sampleType: "Sachet",
   },
   {
@@ -1260,7 +1279,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 4800,
     cogsPerMlKg: 0.88,
     lifecycle: "Core",
-    channelCovered: ["Department Store", "Online", "Travel Retail", "Retail"],
+    channelLvl2Covered: channelLvl2Coverage("Department Store", ["Online", 1], "Travel Retail", "Retail"),
     sampleType: "Deluxe Sample",
   },
   {
@@ -1275,7 +1294,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 3600,
     cogsPerMlKg: 0.17,
     lifecycle: "Growth",
-    channelCovered: ["Pharmacy", "Retail", "Online"],
+    channelLvl2Covered: channelLvl2Coverage(["Wholesale", 0], "Retail", "Online"),
     sampleType: "Sachet",
   },
   {
@@ -1290,7 +1309,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 7400,
     cogsPerMlKg: 0.38,
     lifecycle: "Growth",
-    channelCovered: ["Pharmacy", "Retail", "Online", "Travel Retail"],
+    channelLvl2Covered: channelLvl2Coverage(["Wholesale", 1], ["Retail", 1], ["Online", 1], "Travel Retail"),
     sampleType: "Travel Size",
   },
   {
@@ -1305,7 +1324,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 3400,
     cogsPerMlKg: 0.57,
     lifecycle: "Tail",
-    channelCovered: ["Retail"],
+    channelLvl2Covered: channelLvl2Coverage("Retail"),
     sampleType: "Sachet",
   },
   {
@@ -1320,7 +1339,7 @@ const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
     cost: 14600,
     cogsPerMlKg: 1.42,
     lifecycle: "Tail",
-    channelCovered: ["Retail", "Department Store"],
+    channelLvl2Covered: channelLvl2Coverage(["Retail", 1], "Department Store"),
     sampleType: "Deluxe Sample",
   },
 ];
@@ -1332,6 +1351,6 @@ export const mockPlvSkus: PlvSkuRecord[] = mockPlvSkuSeeds.map((sku) => {
     ...sku,
     timePeriod: product.timePeriod,
     channelLvl1: product.channelLvl1,
-    channelLvl2Covered: sku.channelCovered,
+    channelCovered: deriveChannelCovered(sku.channelLvl2Covered),
   };
 });

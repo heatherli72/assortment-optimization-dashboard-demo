@@ -1,6 +1,19 @@
 import { dashboardPages } from "../domain/pages";
 import { mockFgSkus, mockPlvSkus, mockProducts } from "./mockData";
 
+const explicitPlvChannelLvl2Labels = new Set([
+  "Retail - Flagship",
+  "Retail - Counter",
+  "Online - Brand.com",
+  "Online - Marketplace",
+  "Wholesale - Salon",
+  "Wholesale - Distributor",
+  "Department Store - Beauty Floor",
+  "Travel Retail - Airport",
+]);
+
+const deriveChannelLvl1 = (label: string) => label.split(" - ")[0];
+
 test("mock data contains enough products for dashboard scatter charts", () => {
   expect(mockProducts.length).toBeGreaterThanOrEqual(12);
   expect(mockFgSkus.length).toBeGreaterThanOrEqual(36);
@@ -50,6 +63,12 @@ test("deep dive mock data links to valid products", () => {
     expect(sku.channelLvl1).not.toHaveLength(0);
     expect(sku.channelLvl2Covered.length).toBeGreaterThan(0);
     expect(new Set(sku.channelLvl2Covered).size).toBe(sku.channelLvl2Covered.length);
+    expect(sku.channelLvl2Covered.every((label) => explicitPlvChannelLvl2Labels.has(label))).toBe(
+      true,
+    );
+    expect(sku.channelLvl2Covered.every((label) => label.includes(" - "))).toBe(true);
+    expect(new Set(sku.channelLvl2Covered.map(deriveChannelLvl1))).toEqual(new Set(sku.channelCovered));
+    expect(sku.channelCovered.every((label) => !label.includes(" - "))).toBe(true);
   }
 });
 
@@ -58,7 +77,7 @@ test("product plv channel coverage counts are derivable from plv sku lvl2 covera
     const coverage = new Set(
       mockPlvSkus
         .filter((sku) => sku.productId === product.id)
-        .flatMap((sku) => sku.channelLvl2Covered),
+        .flatMap((sku) => sku.channelLvl2Covered.map(deriveChannelLvl1)),
     );
 
     expect(product.plvChannelCoverageCount).toBe(coverage.size);

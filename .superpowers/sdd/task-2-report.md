@@ -116,3 +116,24 @@ Implemented Task 2 exactly within the requested source scope:
 - `npm run build`
   - Result: pass
   - Output: Vite production build completed successfully
+
+## Review Fixes 2
+
+### What changed
+
+- Replaced PLV seed coverage values with explicit lvl2 channel labels such as `Retail - Flagship`, `Retail - Counter`, `Online - Brand.com`, `Online - Marketplace`, `Wholesale - Salon`, `Wholesale - Distributor`, `Department Store - Beauty Floor`, and `Travel Retail - Airport`
+- Added a deterministic lvl2 taxonomy map in `src/data/mockData.ts` so PLV mock coverage is modeled at lvl2 instead of reusing broad lvl1 labels
+- Derived the backcompat `channelCovered` field from the lvl2 labels by stripping the suffix after ` - `
+- Strengthened `src/data/mockData.test.ts` so it fails on broad-only PLV labels and verifies the lvl1/lvl2 relationship plus the derived coverage count
+
+### Verification results after this fix
+
+- `npm test -- src/data/mockData.test.ts`
+  - Result: pass
+  - Output: `Test Files  1 passed (1)` / `Tests  5 passed (5)`
+- `npm test`
+  - Result: pass
+  - Output: `Test Files  2 passed (2)` / `Tests  6 passed (6)`
+- `npm run build`
+  - Result: pass
+  - Output: Vite production build completed successfully
