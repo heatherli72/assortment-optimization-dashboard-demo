@@ -92,3 +92,27 @@ Implemented Task 2 exactly within the requested source scope:
 ## Concerns
 
 - None
+
+## Review Fixes
+
+### What changed
+
+- Added `timePeriod` to `ProductRecord`, `FgSkuRecord`, and `PlvSkuRecord`
+- Added `channelLvl1` to `FgSkuRecord` and `PlvSkuRecord`
+- Added typed PLV lvl2 channel coverage via `channelLvl2Covered`
+- Kept `channelCovered` on PLV SKUs and populated `channelLvl2Covered` from the same deterministic coverage lists
+- Enriched mock product, FG SKU, and PLV SKU exports with deterministic `2026` time periods while preserving the existing business measures
+- Derived FG and PLV SKU `channelLvl1` values from their parent product records for explicit SKU-level filterability
+- Expanded Task 2 tests to assert minimum FG/PLV row counts, the `dashboardPages` route contract, time-period presence, SKU-level channel fields, and product PLV coverage derivation from lvl2 channel data
+
+### Verification results after review fixes
+
+- `npm test -- src/data/mockData.test.ts`
+  - Result: pass
+  - Output: `Test Files  1 passed (1)` / `Tests  5 passed (5)`
+- `npm test`
+  - Result: pass
+  - Output: `Test Files  2 passed (2)` / `Tests  6 passed (6)`
+- `npm run build`
+  - Result: pass
+  - Output: Vite production build completed successfully

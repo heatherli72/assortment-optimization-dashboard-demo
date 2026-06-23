@@ -1,6 +1,30 @@
 import type { FgSkuRecord, PlvSkuRecord, ProductRecord } from "../domain/types";
 
-export const mockProducts: ProductRecord[] = [
+type ProductRecordSeed = Omit<ProductRecord, "timePeriod">;
+type FgSkuRecordSeed = Omit<FgSkuRecord, "timePeriod" | "channelLvl1">;
+type PlvSkuRecordSeed = Omit<
+  PlvSkuRecord,
+  "timePeriod" | "channelLvl1" | "channelLvl2Covered"
+> & {
+  channelCovered: string[];
+};
+
+const productTimePeriods: Record<string, string> = {
+  "p-serum-core": "2026 R12",
+  "p-cream-tail-complex": "2026 Q2",
+  "p-cleanser-growth-broad": "2026 R12",
+  "p-toner-mature-efficient": "2026 Q2",
+  "p-mask-tail-niche": "2026 R11",
+  "p-sunscreen-core-scaled": "2026 R12",
+  "p-essence-growth-fragmented": "2026 Q2",
+  "p-lotion-mature-steady": "2026 R11",
+  "p-mist-exit-longtail": "2026 Q1",
+  "p-oil-core-premium": "2026 R12",
+  "p-gel-growth-value": "2026 Q2",
+  "p-balm-tail-overlap": "2026 Q1",
+};
+
+const mockProductSeeds: ProductRecordSeed[] = [
   {
     id: "p-serum-core",
     brand: "Aurora",
@@ -291,7 +315,29 @@ export const mockProducts: ProductRecord[] = [
   },
 ];
 
-export const mockFgSkus: FgSkuRecord[] = [
+const mockProductsById = new Map(
+  mockProductSeeds.map((product) => [
+    product.id,
+    {
+      ...product,
+      timePeriod: productTimePeriods[product.id],
+    },
+  ]),
+);
+
+export const mockProducts: ProductRecord[] = Array.from(mockProductsById.values());
+
+const getProductContext = (productId: string) => {
+  const product = mockProductsById.get(productId);
+
+  if (!product) {
+    throw new Error(`Missing product seed for ${productId}`);
+  }
+
+  return product;
+};
+
+const mockFgSkuSeeds: FgSkuRecordSeed[] = [
   {
     id: "fg-serum-core-30",
     productId: "p-serum-core",
@@ -906,7 +952,17 @@ export const mockFgSkus: FgSkuRecord[] = [
   },
 ];
 
-export const mockPlvSkus: PlvSkuRecord[] = [
+export const mockFgSkus: FgSkuRecord[] = mockFgSkuSeeds.map((sku) => {
+  const product = getProductContext(sku.productId);
+
+  return {
+    ...sku,
+    timePeriod: product.timePeriod,
+    channelLvl1: product.channelLvl1,
+  };
+});
+
+const mockPlvSkuSeeds: PlvSkuRecordSeed[] = [
   {
     id: "plv-serum-core-sachet",
     productId: "p-serum-core",
@@ -1268,3 +1324,14 @@ export const mockPlvSkus: PlvSkuRecord[] = [
     sampleType: "Deluxe Sample",
   },
 ];
+
+export const mockPlvSkus: PlvSkuRecord[] = mockPlvSkuSeeds.map((sku) => {
+  const product = getProductContext(sku.productId);
+
+  return {
+    ...sku,
+    timePeriod: product.timePeriod,
+    channelLvl1: product.channelLvl1,
+    channelLvl2Covered: sku.channelCovered,
+  };
+});

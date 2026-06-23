@@ -25,6 +25,7 @@ export interface FilterState {
 
 export interface ProductRecord {
   id: string;
+  timePeriod: string;
   brand: string;
   category: string;
   productLvl1: string;
@@ -51,6 +52,8 @@ export interface ProductRecord {
 export interface FgSkuRecord {
   id: string;
   productId: string;
+  timePeriod: string;
+  channelLvl1: string;
   skuCode: string;
   skuName: string;
   size: string;
@@ -69,6 +72,8 @@ export interface FgSkuRecord {
 export interface PlvSkuRecord {
   id: string;
   productId: string;
+  timePeriod: string;
+  channelLvl1: string;
   skuCode: string;
   skuName: string;
   size: string;
@@ -78,6 +83,7 @@ export interface PlvSkuRecord {
   cost: number;
   cogsPerMlKg: number;
   lifecycle: Lifecycle;
+  channelLvl2Covered: string[];
   channelCovered: string[];
   sampleType: "Sachet" | "Deluxe Sample" | "Travel Size";
 }
