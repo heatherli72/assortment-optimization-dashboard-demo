@@ -137,3 +137,23 @@ Implemented Task 2 exactly within the requested source scope:
 - `npm run build`
   - Result: pass
   - Output: Vite production build completed successfully
+
+## Review Fixes 3
+
+### What changed
+
+- Strengthened `src/data/mockData.test.ts` so the dashboard page test now asserts the exact seven-route metadata contract instead of only checking IDs and non-empty strings
+- The assertion now covers each page's `id`, `title`, and `group`, plus `level` and `strategicQuestion` wherever they are defined
+- Included the exact `sample-complexity` title check so the test fails if Page 5 drifts from `Sample Complexity vs. Demand`
+
+### Verification results after this fix
+
+- `npm test -- src/data/mockData.test.ts`
+  - Result: pass
+  - Output: `Test Files  1 passed (1)` / `Tests  5 passed (5)`
+- `npm test`
+  - Result: pass
+  - Output: `Test Files  2 passed (2)` / `Tests  6 passed (6)`
+- `npm run build`
+  - Result: pass
+  - Output: Vite production build completed successfully

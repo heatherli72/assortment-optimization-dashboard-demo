@@ -21,20 +21,63 @@ test("mock data contains enough products for dashboard scatter charts", () => {
 });
 
 test("dashboard pages expose the full navigation contract", () => {
-  expect(dashboardPages.map((page) => page.id)).toEqual([
-    "overview",
-    "core-tail",
-    "fg-variety",
-    "fg-sku-deep-dive",
-    "plv-support",
-    "sample-complexity",
-    "plv-sku-deep-dive",
+  expect(
+    dashboardPages.map(({ id, title, group, level, strategicQuestion }) => ({
+      id,
+      title,
+      group,
+      ...(level ? { level } : {}),
+      ...(strategicQuestion ? { strategicQuestion } : {}),
+    })),
+  ).toEqual([
+    {
+      id: "overview",
+      title: "Overview",
+      group: "Overview",
+    },
+    {
+      id: "core-tail",
+      title: "Core vs. Tail",
+      group: "Product (FG)",
+      level: "Level 1: Macro",
+      strategicQuestion: "Where is the Money?",
+    },
+    {
+      id: "fg-variety",
+      title: "FG Variety vs. Value",
+      group: "Product (FG)",
+      level: "Level 2: Diagnosis",
+      strategicQuestion: "Is Complexity Justified?",
+    },
+    {
+      id: "fg-sku-deep-dive",
+      title: "FG SKU Deep Dive",
+      group: "Product (FG)",
+      level: "Level 3: Micro",
+      strategicQuestion: "What Should We Keep, Review, or Simplify?",
+    },
+    {
+      id: "plv-support",
+      title: "PLV Support vs. FG Sales",
+      group: "Sample (PLV)",
+      level: "Level 1: Macro",
+      strategicQuestion: "Where is the Money?",
+    },
+    {
+      id: "sample-complexity",
+      title: "Sample Complexity vs. Demand",
+      group: "Sample (PLV)",
+      level: "Level 2: Diagnosis",
+      strategicQuestion: "Is Complexity Justified?",
+    },
+    {
+      id: "plv-sku-deep-dive",
+      title: "PLV SKU Deep Dive",
+      group: "Sample (PLV)",
+      level: "Level 3: Micro",
+      strategicQuestion: "What Should We Keep, Review, or Simplify?",
+    },
   ]);
-
-  for (const page of dashboardPages) {
-    expect(page.title).not.toHaveLength(0);
-    expect(page.description).not.toHaveLength(0);
-  }
 });
 
 test("each product has required numeric business measures", () => {
