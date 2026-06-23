@@ -36,8 +36,8 @@ export function buildParetoRows(products: ProductRecord[], metric: MetricKey): P
   return sorted.map((product) => {
     const value = getProductMetric(product, metric);
     const contribution = total === 0 ? 0 : value / total;
+    const segment = cumulative < 0.6 ? "A" : cumulative < 0.9 ? "B" : "C";
     cumulative += contribution;
-    const segment = cumulative <= 0.6 ? "A" : cumulative <= 0.9 ? "B" : "C";
     return {
       id: product.id,
       label: product.productLvl1,

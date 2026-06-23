@@ -52,7 +52,7 @@ describe("shared dashboard components", () => {
     expect(cells.slice(0, 2)).toEqual(["A", "8"]);
   });
 
-  test("data table filters by any column", async () => {
+  test("data table searches across columns", async () => {
     render(
       <DataTable
         getRowId={(row) => row.name}
@@ -67,7 +67,7 @@ describe("shared dashboard components", () => {
       />,
     );
 
-    await userEvent.type(screen.getByLabelText("Filter Name"), "Hydra");
+    await userEvent.type(screen.getByLabelText("Search table"), "Hydra");
     expect(screen.getByText("Hydra Serum")).toBeInTheDocument();
     expect(screen.queryByText("Repair Cream")).not.toBeInTheDocument();
   });

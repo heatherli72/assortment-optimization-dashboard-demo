@@ -14,7 +14,7 @@ export const dashboardPages: DashboardPageMeta[] = [
     level: "Level 1: Macro",
     strategicQuestion: "Where is the Money?",
     description:
-      "Separate top value drivers from the low-performing long tail across the portfolio.",
+      "Identify where the portfolio makes money and where long-tail complexity starts.",
   },
   {
     id: "fg-variety",
@@ -23,7 +23,7 @@ export const dashboardPages: DashboardPageMeta[] = [
     level: "Level 2: Diagnosis",
     strategicQuestion: "Is Complexity Justified?",
     description:
-      "Flag products where high SKU and FLA variety fail to generate enough value.",
+      "Find products where FG SKU or FLA breadth is not justified by value, units, or margin.",
   },
   {
     id: "fg-sku-deep-dive",
@@ -32,7 +32,7 @@ export const dashboardPages: DashboardPageMeta[] = [
     level: "Level 3: Micro",
     strategicQuestion: "What Should We Keep, Review, or Simplify?",
     description:
-      "Zoom into one product to identify low-volume, low-margin, or high-complexity SKUs.",
+      "Identify which FG SKUs to keep, review, or simplify inside a selected Product L1.",
   },
   {
     id: "plv-support",
@@ -41,16 +41,16 @@ export const dashboardPages: DashboardPageMeta[] = [
     level: "Level 1: Macro",
     strategicQuestion: "Where is the Money?",
     description:
-      "Check whether PLV support is proportionate to FG sales and units.",
+      "Check whether PLV support is proportionate to the FG sales and demand it supports.",
   },
   {
     id: "sample-complexity",
-    title: "Sample Complexity vs. Demand",
+    title: "PLV Complexity vs. Demand",
     group: "Sample (PLV)",
     level: "Level 2: Diagnosis",
     strategicQuestion: "Is Complexity Justified?",
     description:
-      "Expose complex mini-assortments that lack shipped units to justify their existence.",
+      "Expose complex PLV mini-assortments where variety or coverage is not matched by demand.",
   },
   {
     id: "plv-sku-deep-dive",
@@ -59,6 +59,6 @@ export const dashboardPages: DashboardPageMeta[] = [
     level: "Level 3: Micro",
     strategicQuestion: "What Should We Keep, Review, or Simplify?",
     description:
-      "Zoom into one product to identify overlapping PLV sizes with no distinct sales role.",
+      "Identify overlapping, costly, or low-demand PLV SKUs inside a selected Product L1.",
   },
 ];

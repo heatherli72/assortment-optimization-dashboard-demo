@@ -1,32 +1,32 @@
 import { useMemo, useState } from "react";
 import { getPlvSkuAction } from "../analytics/actions";
-import { currency, wholeNumber } from "../analytics/formatters";
+import { currency, percent, wholeNumber } from "../analytics/formatters";
 import { ActionBadge } from "../components/ActionBadge";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { KpiCard } from "../components/KpiCard";
-import { ScopeDrawer } from "../components/ScopeDrawer";
 import { BubbleChart } from "../components/charts/BubbleChart";
 import { MatrixChart } from "../components/charts/MatrixChart";
 import { ParetoChart } from "../components/charts/ParetoChart";
 import type { ParetoRow } from "../analytics/aggregations";
 import type { PlvSkuRecord, ProductRecord } from "../domain/types";
-import { emptyReason, plvScopeSections } from "./pageHelpers";
+import { emptyReason } from "./pageHelpers";
 
 interface PlvSkuDeepDivePageProps {
   products: ProductRecord[];
+  benchmarkProducts: ProductRecord[];
   plvSkus: PlvSkuRecord[];
+  selectedProductName: string;
 }
 
-export function PlvSkuDeepDivePage({ products, plvSkus }: PlvSkuDeepDivePageProps) {
-  const productsWithPlv = products.filter((product) => plvSkus.some((sku) => sku.productId === product.id));
-  const defaultProduct =
-    productsWithPlv.find((product) =>
-      plvSkus
-        .filter((sku) => sku.productId === product.id)
-        .some((sku, _, siblings) => getPlvSkuAction(sku, product, siblings).action === "Simplify"),
-    ) ?? productsWithPlv[0];
-  const [selectedProductId, setSelectedProductId] = useState(defaultProduct?.id ?? "");
-  const selectedProduct = productsWithPlv.find((product) => product.id === selectedProductId) ?? defaultProduct;
+const findSelectedProduct = (products: ProductRecord[], productName: string) => {
+  const query = productName.trim().toLowerCase();
+  if (!query) return undefined;
+  return products.find((product) => product.productLvl1.toLowerCase() === query) ?? (products.length === 1 ? products[0] : undefined);
+};
+
+export function PlvSkuDeepDivePage({ products, benchmarkProducts, plvSkus, selectedProductName }: PlvSkuDeepDivePageProps) {
+  const [selectedSkuId, setSelectedSkuId] = useState<string | null>(null);
+  const selectedProduct = findSelectedProduct(products, selectedProductName);
   const productSkus = plvSkus.filter((sku) => sku.productId === selectedProduct?.id);
   const rows = useMemo(
     () =>
@@ -37,11 +37,20 @@ export function PlvSkuDeepDivePage({ products, plvSkus }: PlvSkuDeepDivePageProp
     [productSkus, selectedProduct],
   );
   const totalUnits = rows.reduce((sum, row) => sum + row.units, 0);
+  const brandProducts = selectedProduct ? benchmarkProducts.filter((product) => product.brand === selectedProduct.brand) : [];
+  const brandProductsWithPlv = brandProducts.filter((product) => product.plvSkuCount > 0);
+  const brandPlvUnits = brandProducts.reduce((sum, product) => sum + product.plvUnits, 0);
+  const brandPlvSkuBenchmark = brandProducts.length ? brandProducts.reduce((sum, product) => sum + product.plvSkuCount, 0) / brandProducts.length : 0;
+  const brandPlvFlaBenchmark = brandProducts.length ? brandProducts.reduce((sum, product) => sum + product.plvFlaCount, 0) / brandProducts.length : 0;
+  const plvUnitsRank = selectedProduct
+    ? [...brandProducts].sort((a, b) => b.plvUnits - a.plvUnits).findIndex((product) => product.id === selectedProduct.id) + 1
+    : 0;
   let cumulative = 0;
   const paretoRows: ParetoRow[] = [...rows]
     .sort((a, b) => b.units - a.units)
     .map((sku) => {
       const contribution = totalUnits ? sku.units / totalUnits : 0;
+      const segment = cumulative < 0.6 ? "A" : cumulative < 0.9 ? "B" : "C";
       cumulative += contribution;
       return {
         id: sku.id,
@@ -49,54 +58,60 @@ export function PlvSkuDeepDivePage({ products, plvSkus }: PlvSkuDeepDivePageProp
         value: sku.units,
         contribution,
         cumulativeContribution: Math.min(cumulative, 1),
-        segment: cumulative <= 0.6 ? "A" : cumulative <= 0.9 ? "B" : "C",
+        segment,
       };
     });
   const channels = Array.from(new Set(rows.flatMap((sku) => sku.channelLvl2Covered))).sort();
   const sampleTypes = Array.from(new Set(rows.map((sku) => sku.sampleType))).sort();
-  const toneFor = (action: string) =>
-    action === "Keep" ? "keep" : action === "Simplify" ? "simplify" : "review";
   const columns: Array<DataTableColumn<(typeof rows)[number]>> = [
-    { key: "sku", header: "SKU", value: (row) => row.skuName, sortValue: (row) => row.skuName },
+    { key: "skuCode", header: "SKU Code", sticky: true, stickyOffset: 0, value: (row) => row.skuCode, sortValue: (row) => row.skuCode },
+    { key: "sku", header: "SKU Name", sticky: true, stickyOffset: 142, value: (row) => row.skuName, sortValue: (row) => row.skuName },
+    { key: "lifecycle", header: "Lifecycle", value: (row) => row.lifecycle, sortValue: (row) => row.lifecycle },
     { key: "type", header: "Sample type", value: (row) => row.sampleType, sortValue: (row) => row.sampleType },
     { key: "size", header: "Size", value: (row) => row.size, sortValue: (row) => row.size },
-    { key: "fla", header: "FLA Count", align: "right", value: (row) => row.flaCount, sortValue: (row) => row.flaCount },
+    { key: "fla", header: "FLA", value: (row) => row.fla, sortValue: (row) => row.fla },
+    { key: "flaCount", header: "FLA Count", align: "right", value: (row) => row.flaCount, sortValue: (row) => row.flaCount },
     { key: "units", header: "PLV Units", align: "right", value: (row) => wholeNumber.format(row.units), sortValue: (row) => row.units },
-    { key: "cost", header: "PLV Cost", align: "right", value: (row) => currency.format(row.cost), sortValue: (row) => row.cost },
+    { key: "unitsShare", header: "PLV Units contribution to brand", align: "right", value: (row) => percent.format(brandPlvUnits ? row.units / brandPlvUnits : 0), sortValue: (row) => brandPlvUnits ? row.units / brandPlvUnits : 0 },
+    { key: "cost", header: "PLV COGS", align: "right", value: (row) => currency.format(row.cost), sortValue: (row) => row.cost },
     { key: "cogs", header: "COGS per ml/kg", align: "right", value: (row) => currency.format(row.cogsPerMlKg), sortValue: (row) => row.cogsPerMlKg },
-    { key: "coverage", header: "Channel lvl2 coverage", value: (row) => row.channelLvl2Covered.join(", "), sortValue: (row) => row.channelLvl2Covered.length },
+    { key: "coverage", header: "Channel L2 coverage", value: (row) => row.channelLvl2Covered.join(", "), sortValue: (row) => row.channelLvl2Covered.length },
     { key: "action", header: "Suggested action", value: (row) => <ActionBadge action={row.recommendation.action} />, sortValue: (row) => row.recommendation.action },
     { key: "reason", header: "Reason", value: (row) => <span className={row.recommendation.reason ? "" : "empty-reason"}>{emptyReason(row.recommendation.reason)}</span>, sortValue: (row) => row.recommendation.reason },
   ];
 
+  if (!selectedProduct) {
+    return (
+      <main className="page">
+        <section className="empty-state">
+          <strong>Select one Product L1</strong>
+          <span>Use the Product L1 filter above to open PLV SKU detail. The page stays empty until a single product is selected.</span>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="page">
-      <section className="page-title">
-        <p className="eyebrow">Decision this page supports</p>
-        <h2>PLV SKU Deep Dive</h2>
-        <p>Identify overlapping, costly, or low-demand PLV SKUs to keep, review, or simplify.</p>
-      </section>
-      <div className="toolbar-row">
-        <label className="inline-select">
-          Product
-          <select value={selectedProduct?.id ?? ""} onChange={(event) => setSelectedProductId(event.target.value)}>
-            {productsWithPlv.map((product) => (
-              <option key={product.id} value={product.id}>{product.productLvl1}</option>
-            ))}
-          </select>
-        </label>
-        <ScopeDrawer title="PLV SKU Deep Dive scope" sections={plvScopeSections} />
-      </div>
       <section className="kpi-grid">
-        <KpiCard tone="plv" label="Selected product" value={selectedProduct?.productLvl1 ?? "No product"} context={selectedProduct?.brand} />
-        <KpiCard label="PLV SKUs" value={wholeNumber.format(rows.length)} />
-        <KpiCard label="PLV units" value={wholeNumber.format(totalUnits)} />
-        <KpiCard label="Simplify candidates" value={wholeNumber.format(rows.filter((row) => row.recommendation.action === "Simplify").length)} />
+        <KpiCard label="ABC Type" value={selectedProduct?.abcCategory ?? "-"} />
+        <KpiCard label="PLV SKU Count" value={wholeNumber.format(rows.length)} context={`Brand benchmark ${brandPlvSkuBenchmark.toFixed(1)}`} />
+        <KpiCard label="PLV FLA Count" value={wholeNumber.format(selectedProduct?.plvFlaCount ?? 0)} context={`Brand benchmark ${brandPlvFlaBenchmark.toFixed(1)}`} />
+        <KpiCard tone="plv" label="Products with PLV" value={wholeNumber.format(brandProductsWithPlv.length)} context={`${brandProducts.length} total brand products`} />
+        <KpiCard group="volume" label="PLV units contribution to brand" value={percent.format(brandPlvUnits ? (selectedProduct?.plvUnits ?? 0) / brandPlvUnits : 0)} />
+        <KpiCard group="volume" label="Units rank out of total brand" value={plvUnitsRank ? `${plvUnitsRank}/${brandProducts.length}` : "-"} />
       </section>
       <section className="split-grid">
         <div className="chart-panel">
           <h3>PLV Units Pareto by SKU</h3>
-          <ParetoChart rows={paretoRows} valueFormatter={wholeNumber.format} />
+          <ParetoChart
+            rows={paretoRows}
+            valueFormatter={wholeNumber.format}
+            measureLabel="PLV Units"
+            selectedId={selectedSkuId}
+            onSelectRow={setSelectedSkuId}
+            onClearSelection={() => setSelectedSkuId(null)}
+          />
         </div>
         <div className="chart-panel">
           <h3>PLV Units vs COGS per ml/kg</h3>
@@ -106,6 +121,9 @@ export function PlvSkuDeepDivePage({ products, plvSkus }: PlvSkuDeepDivePageProp
             yLabel="COGS per ml/kg"
             xFormatter={wholeNumber.format}
             yFormatter={(value) => currency.format(value)}
+            selectedId={selectedSkuId}
+            onSelectRow={setSelectedSkuId}
+            onClearSelection={() => setSelectedSkuId(null)}
           />
         </div>
       </section>
@@ -119,7 +137,7 @@ export function PlvSkuDeepDivePage({ products, plvSkus }: PlvSkuDeepDivePageProp
               sku.channelLvl2Covered.map((column) => ({
                 row: sku.skuCode,
                 column,
-                tone: toneFor(sku.recommendation.action) as "keep" | "review" | "simplify",
+                tone: "keep" as const,
               })),
             )}
           />
@@ -132,14 +150,21 @@ export function PlvSkuDeepDivePage({ products, plvSkus }: PlvSkuDeepDivePageProp
             activeCells={rows.map((sku) => ({
               row: sku.skuCode,
               column: sku.sampleType,
-              tone: toneFor(sku.recommendation.action) as "keep" | "review" | "simplify",
+              tone: "keep" as const,
             }))}
           />
         </div>
       </section>
       <section className="data-panel">
-        <h3>Detailed table</h3>
-        <DataTable columns={columns} rows={rows} getRowId={(row) => row.id} />
+        <DataTable
+          columns={columns}
+          rows={rows}
+          getRowId={(row) => row.id}
+          exportFilename="plv-sku-deep-dive-table"
+          selectedRowId={selectedSkuId}
+          selectionLabel="Clear selected SKU"
+          onClearSelection={() => setSelectedSkuId(null)}
+        />
       </section>
     </main>
   );

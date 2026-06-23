@@ -335,13 +335,18 @@ const mockProductSeeds: ProductRecordSeed[] = [
 ];
 
 const mockProductsById = new Map(
-  mockProductSeeds.map((product) => [
-    product.id,
-    {
-      ...product,
-      timePeriod: productTimePeriods[product.id],
-    },
-  ]),
+  mockProductSeeds.map((product) => {
+    const indicativeGm = product.indicativeGm - product.plvCost;
+    return [
+      product.id,
+      {
+        ...product,
+        indicativeGm,
+        indicativeGmPct: product.value ? indicativeGm / product.value : 0,
+        timePeriod: productTimePeriods[product.id],
+      },
+    ];
+  }),
 );
 
 export const mockProducts: ProductRecord[] = Array.from(mockProductsById.values());

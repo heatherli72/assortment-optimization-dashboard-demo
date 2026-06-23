@@ -1,70 +1,88 @@
 import { useState } from "react";
 import { summarizeFgVariety } from "../analytics/aggregations";
-import { currency, wholeNumber } from "../analytics/formatters";
+import { currency, percent, wholeNumber } from "../analytics/formatters";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { KpiCard } from "../components/KpiCard";
 import { MetricSwitch } from "../components/MetricSwitch";
-import { ScopeDrawer } from "../components/ScopeDrawer";
 import { ScatterChart } from "../components/charts/ScatterChart";
 import type { MetricKey, ProductRecord, VarietyMetric } from "../domain/types";
-import { fgScopeSections, getProductMetricValue, metricFormatter, metricLabel, metricOptions, varietyLabel, varietyOptions } from "./pageHelpers";
+import { getProductMetricValue, metricFormatter, metricLabel, metricOptions, varietyOptions } from "./pageHelpers";
 
 interface FgVarietyPageProps {
   products: ProductRecord[];
+  onOpenProduct: (productName: string) => void;
 }
 
-export function FgVarietyPage({ products }: FgVarietyPageProps) {
+export function FgVarietyPage({ products, onOpenProduct }: FgVarietyPageProps) {
   const [xMetric, setXMetric] = useState<MetricKey>("value");
   const [yMetric, setYMetric] = useState<VarietyMetric>("skuCount");
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const summary = summarizeFgVariety(products);
+  const yLabel = yMetric === "skuCount" ? "FG SKU Count" : "FG FLA Count";
   const columns: Array<DataTableColumn<ProductRecord>> = [
-    { key: "product", header: "Product Lvl 1", value: (row) => row.productLvl1, sortValue: (row) => row.productLvl1 },
+    { key: "product", header: "Product L1", sticky: true, value: (row) => <button className="product-link" type="button" onClick={() => onOpenProduct(row.productLvl1)}>{row.productLvl1}</button>, sortValue: (row) => row.productLvl1 },
     { key: "brand", header: "Brand", value: (row) => row.brand, sortValue: (row) => row.brand },
-    { key: "value", header: "Value", align: "right", value: (row) => currency.format(row.value), sortValue: (row) => row.value },
+    { key: "category", header: "Category", value: (row) => row.category, sortValue: (row) => row.category },
+    { key: "abc", header: "ABC Type", value: (row) => row.abcCategory, sortValue: (row) => row.abcCategory },
+    { key: "value", header: "Sales Value", align: "right", value: (row) => currency.format(row.value), sortValue: (row) => row.value },
     { key: "units", header: "Units", align: "right", value: (row) => wholeNumber.format(row.units), sortValue: (row) => row.units },
-    { key: "sku", header: "SKU Count", align: "right", value: (row) => row.skuCount, sortValue: (row) => row.skuCount },
-    { key: "fla", header: "FLA Count", align: "right", value: (row) => row.flaCount, sortValue: (row) => row.flaCount },
-    { key: "life", header: "Lifecycle", value: (row) => row.lifecycle, sortValue: (row) => row.lifecycle },
-    { key: "abc", header: "ABC Category", value: (row) => row.abcCategory, sortValue: (row) => row.abcCategory },
+    { key: "gm", header: "Indicative GM", align: "right", value: (row) => currency.format(row.indicativeGm), sortValue: (row) => row.indicativeGm },
+    { key: "gmPct", header: "Indicative GM %", align: "right", value: (row) => percent.format(row.indicativeGmPct), sortValue: (row) => row.indicativeGmPct },
+    { key: "sku", header: "FG SKU Count", align: "right", value: (row) => row.skuCount, sortValue: (row) => row.skuCount },
+    { key: "fla", header: "FG FLA Count", align: "right", value: (row) => row.flaCount, sortValue: (row) => row.flaCount },
+    { key: "salesPerSku", header: "Sales per SKU", align: "right", value: (row) => currency.format(row.value / row.skuCount), sortValue: (row) => row.value / row.skuCount },
+    { key: "salesPerFla", header: "Sales per FLA", align: "right", value: (row) => currency.format(row.value / row.flaCount), sortValue: (row) => row.value / row.flaCount },
   ];
 
   return (
     <main className="page">
-      <section className="page-title">
-        <p className="eyebrow">Decision this page supports</p>
-        <h2>FG Variety vs. Value</h2>
-        <p>Find products where SKU or FLA breadth is not justified by value, units, or margin.</p>
-      </section>
-      <div className="toolbar-row">
-        <MetricSwitch label="X-axis" value={xMetric} options={metricOptions} onChange={setXMetric} />
-        <MetricSwitch label="Y-axis" value={yMetric} options={varietyOptions} onChange={setYMetric} />
-        <ScopeDrawer title="FG Variety vs. Value scope" sections={fgScopeSections} />
-      </div>
       <section className="kpi-grid">
         <KpiCard tone="fg" label="Total products" value={wholeNumber.format(summary.totalProductCount)} />
-        <KpiCard label="Avg SKU" value={summary.avgSkuCount.toFixed(1)} />
-        <KpiCard label="Avg FLA" value={summary.avgFlaCount.toFixed(1)} />
+        <KpiCard label="Average FG SKU Count" value={summary.avgSkuCount.toFixed(1)} />
+        <KpiCard label="Average FG FLA Count" value={summary.avgFlaCount.toFixed(1)} />
       </section>
       <section className="chart-panel">
-        <h3>{metricLabel[xMetric]} vs. {varietyLabel[yMetric]}</h3>
-        <ScatterChart
-          xLabel={metricLabel[xMetric]}
-          yLabel={varietyLabel[yMetric]}
-          reviewZoneLabel="High variety / low value review zone"
-          xFormatter={metricFormatter(xMetric)}
-          yFormatter={wholeNumber.format}
-          rows={products.map((product) => ({
-            id: product.id,
-            label: product.productLvl1,
-            x: getProductMetricValue(product, xMetric),
-            y: product[yMetric],
-            group: product.abcCategory,
-          }))}
-        />
+        <div className="chart-panel-head">
+          <h3>{yLabel} vs. {metricLabel[xMetric]}</h3>
+        </div>
+        <div className="axis-control-layout">
+          <div className="axis-selector-y">
+            <MetricSwitch label="Y-axis" value={yMetric} options={varietyOptions} onChange={setYMetric} />
+          </div>
+          <div className="axis-control-main">
+            <ScatterChart
+              xLabel={metricLabel[xMetric]}
+              yLabel={yLabel}
+              reviewZoneLabel="Watch: high variety / low value"
+              selectedId={selectedProductId}
+              onClearSelection={() => setSelectedProductId(null)}
+              onSelectRow={setSelectedProductId}
+              xFormatter={metricFormatter(xMetric)}
+              yFormatter={wholeNumber.format}
+              rows={products.map((product) => ({
+                id: product.id,
+                label: product.productLvl1,
+                x: getProductMetricValue(product, xMetric),
+                y: product[yMetric],
+                group: product.abcCategory,
+              }))}
+            />
+            <div className="axis-selector-x">
+              <MetricSwitch label="X-axis" value={xMetric} options={metricOptions} onChange={setXMetric} />
+            </div>
+          </div>
+        </div>
       </section>
       <section className="data-panel">
-        <h3>Detailed table</h3>
-        <DataTable columns={columns} rows={products} getRowId={(row) => row.id} />
+        <DataTable
+          columns={columns}
+          rows={products}
+          getRowId={(row) => row.id}
+          exportFilename="fg-variety-table"
+          selectedRowId={selectedProductId}
+          selectionLabel="Clear selected product"
+          onClearSelection={() => setSelectedProductId(null)}
+        />
       </section>
     </main>
   );

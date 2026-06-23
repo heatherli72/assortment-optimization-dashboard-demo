@@ -1,17 +1,21 @@
-import type { FilterState, Lifecycle } from "../domain/types";
+import type { ReactNode } from "react";
+import type { AbcCategory, FilterState, Lifecycle } from "../domain/types";
 
 interface FilterBarProps {
   filters: FilterState;
   onChange: (filters: FilterState) => void;
   showProductSearch: boolean;
-  fields?: Array<"timePeriod" | "channelLvl1" | "brand" | "category" | "lifecycle" | "productSearch">;
+  fields?: Array<"timePeriod" | "channelLvl1" | "brand" | "category" | "lifecycle" | "abcCategory" | "productSearch">;
   timePeriods: string[];
   brands: string[];
   categories: string[];
   channels: string[];
+  productOptions?: string[];
+  action?: ReactNode;
 }
 
 const lifecycles: Array<"All" | Lifecycle> = ["All", "Core", "Growth", "Mature", "Tail", "Exit"];
+const abcTypes: Array<"All" | AbcCategory> = ["All", "A", "B", "C"];
 
 export function FilterBar({
   filters,
@@ -22,6 +26,8 @@ export function FilterBar({
   brands,
   categories,
   channels,
+  productOptions = [],
+  action,
 }: FilterBarProps) {
   const update = (patch: Partial<FilterState>) => onChange({ ...filters, ...patch });
   const visible = new Set(fields);
@@ -38,7 +44,7 @@ export function FilterBar({
         </select>
       </label> : null}
       {visible.has("channelLvl1") ? <label>
-        Channel lvl1
+        Channel L1
         <select value={filters.channelLvl1} onChange={(event) => update({ channelLvl1: event.target.value })}>
           <option>All</option>
           {channels.map((value) => (
@@ -72,16 +78,31 @@ export function FilterBar({
           ))}
         </select>
       </label> : null}
+      {visible.has("abcCategory") ? <label>
+        ABC Type
+        <select value={filters.abcCategory} onChange={(event) => update({ abcCategory: event.target.value as FilterState["abcCategory"] })}>
+          {abcTypes.map((value) => (
+            <option key={value}>{value}</option>
+          ))}
+        </select>
+      </label> : null}
       {showProductSearch && visible.has("productSearch") ? (
         <label className="filter-search">
-          Product search
+          Product L1
           <input
+            list="product-l1-options"
             value={filters.productSearch}
             onChange={(event) => update({ productSearch: event.target.value })}
-            placeholder="Search product"
+            placeholder="Select or search Product L1"
           />
+          <datalist id="product-l1-options">
+            {productOptions.map((product) => (
+              <option key={product} value={product} />
+            ))}
+          </datalist>
         </label>
       ) : null}
+      {action ? <div className="filter-action-slot">{action}</div> : null}
     </section>
   );
 }

@@ -23,7 +23,7 @@ export function ScopeDrawer({ title, sections }: ScopeDrawerProps) {
     <>
       <button className="scope-button" type="button" onClick={() => setOpen(true)}>
         <Info size={16} aria-hidden="true" />
-        Scope & definitions
+        <span>Scope & definitions</span>
       </button>
       {open ? (
         <div className="drawer-backdrop" onMouseDown={() => setOpen(false)}>

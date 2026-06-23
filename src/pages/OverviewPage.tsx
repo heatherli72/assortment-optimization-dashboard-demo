@@ -42,15 +42,11 @@ const groups: FrameworkGroup[] = [
 export function OverviewPage({ onNavigate }: OverviewPageProps) {
   return (
     <main className="page overview-page cover-page">
-      <section className="page-hero">
-        <div>
-          <p className="eyebrow">Analytics framework</p>
-          <h2>Assortment Optimization Analytics Framework</h2>
-          <p>
-            A practical navigation model for finding value concentration, diagnosing complexity, and
-            turning SKU or PLV issues into keep, review, or simplify actions.
-          </p>
-        </div>
+      <section className="page-hero framework-statement">
+        <p>
+          A practical navigation model for finding value concentration, diagnosing complexity, and
+          turning SKU or PLV issues into keep, review, or simplify actions.
+        </p>
       </section>
       <section className="framework-grid" aria-label="Analytics framework">
         {groups.map((group) => (
@@ -69,8 +65,9 @@ export function OverviewPage({ onNavigate }: OverviewPageProps) {
                     <b aria-hidden="true">Open analysis &gt;</b>
                   </button>
                 ))
-              : group.questions.map((question) => (
-                  <div className="framework-question" key={question.title}>
+              : group.questions.map((question, index) => (
+                  <div className="framework-layer" key={question.title}>
+                    <b>Layer {index + 1}</b>
                     <span>{question.title}</span>
                     <small>{question.description}</small>
                   </div>

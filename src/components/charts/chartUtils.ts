@@ -16,3 +16,10 @@ export function linearScale(domain: readonly [number, number], range: readonly [
   if (d0 === d1) return () => (r0 + r1) / 2;
   return (value: number) => r0 + ((value - d0) / (d1 - d0)) * (r1 - r0);
 }
+
+export function ticks(domain: readonly [number, number], count = 5) {
+  const [min, max] = domain;
+  if (count <= 1 || min === max) return [min];
+  const step = (max - min) / (count - 1);
+  return Array.from({ length: count }, (_, index) => min + step * index);
+}

@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { expect, test } from "vitest";
 import { ParetoChart } from "./ParetoChart";
 import { ScatterChart } from "./ScatterChart";
@@ -21,7 +22,28 @@ test("ParetoChart renders one bar per row", () => {
   expect(screen.getAllByTestId("pareto-bar")).toHaveLength(2);
 });
 
-test("ScatterChart renders labels and axis names", () => {
+test("ParetoChart exposes cutoff labels, export, and hover detail", async () => {
+  render(
+    <ParetoChart
+      measureLabel="Sales value"
+      valueFormatter={(value) => `$${value}`}
+      rows={[
+        { id: "a", label: "Hero Product", value: 60, contribution: 0.6, cumulativeContribution: 0.6, segment: "A" },
+        { id: "b", label: "Tail Product", value: 30, contribution: 0.3, cumulativeContribution: 0.9, segment: "B" },
+      ]}
+    />,
+  );
+
+  expect(screen.getByText("60% cut-off")).toBeInTheDocument();
+  expect(screen.getByText("90% cut-off")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Export Excel" })).toBeInTheDocument();
+
+  await userEvent.hover(screen.getAllByTestId("pareto-bar")[0]);
+  expect(screen.getByText("Sales value: $60")).toBeInTheDocument();
+  expect(screen.getByText("Measure contribution: 60.0%")).toBeInTheDocument();
+});
+
+test("ScatterChart renders axis names and hover-only point detail", async () => {
   render(
     <ScatterChart
       xFormatter={String}
@@ -31,7 +53,8 @@ test("ScatterChart renders labels and axis names", () => {
       rows={[{ id: "a", label: "Hydra Serum", x: 10, y: 2 }]}
     />,
   );
-  expect(screen.getByText("Hydra Serum")).toBeInTheDocument();
   expect(screen.getByText("Value")).toBeInTheDocument();
   expect(screen.getByText("SKU Count")).toBeInTheDocument();
+  await userEvent.hover(screen.getByTestId("scatter-point"));
+  expect(screen.getByText("Hydra Serum")).toBeInTheDocument();
 });

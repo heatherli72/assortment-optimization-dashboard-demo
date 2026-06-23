@@ -41,7 +41,7 @@ test("dashboard pages expose the full navigation contract", () => {
       id: "core-tail",
       title: "Core vs. Tail",
       group: "Product (FG)",
-      description: "Separate top value drivers from the low-performing long tail across the portfolio.",
+      description: "Identify where the portfolio makes money and where long-tail complexity starts.",
       level: "Level 1: Macro",
       strategicQuestion: "Where is the Money?",
     },
@@ -49,7 +49,7 @@ test("dashboard pages expose the full navigation contract", () => {
       id: "fg-variety",
       title: "FG Variety vs. Value",
       group: "Product (FG)",
-      description: "Flag products where high SKU and FLA variety fail to generate enough value.",
+      description: "Find products where FG SKU or FLA breadth is not justified by value, units, or margin.",
       level: "Level 2: Diagnosis",
       strategicQuestion: "Is Complexity Justified?",
     },
@@ -57,7 +57,7 @@ test("dashboard pages expose the full navigation contract", () => {
       id: "fg-sku-deep-dive",
       title: "FG SKU Deep Dive",
       group: "Product (FG)",
-      description: "Zoom into one product to identify low-volume, low-margin, or high-complexity SKUs.",
+      description: "Identify which FG SKUs to keep, review, or simplify inside a selected Product L1.",
       level: "Level 3: Micro",
       strategicQuestion: "What Should We Keep, Review, or Simplify?",
     },
@@ -65,15 +65,15 @@ test("dashboard pages expose the full navigation contract", () => {
       id: "plv-support",
       title: "PLV Support vs. FG Sales",
       group: "Sample (PLV)",
-      description: "Check whether PLV support is proportionate to FG sales and units.",
+      description: "Check whether PLV support is proportionate to the FG sales and demand it supports.",
       level: "Level 1: Macro",
       strategicQuestion: "Where is the Money?",
     },
     {
       id: "sample-complexity",
-      title: "Sample Complexity vs. Demand",
+      title: "PLV Complexity vs. Demand",
       group: "Sample (PLV)",
-      description: "Expose complex mini-assortments that lack shipped units to justify their existence.",
+      description: "Expose complex PLV mini-assortments where variety or coverage is not matched by demand.",
       level: "Level 2: Diagnosis",
       strategicQuestion: "Is Complexity Justified?",
     },
@@ -81,7 +81,7 @@ test("dashboard pages expose the full navigation contract", () => {
       id: "plv-sku-deep-dive",
       title: "PLV SKU Deep Dive",
       group: "Sample (PLV)",
-      description: "Zoom into one product to identify overlapping PLV sizes with no distinct sales role.",
+      description: "Identify overlapping, costly, or low-demand PLV SKUs inside a selected Product L1.",
       level: "Level 3: Micro",
       strategicQuestion: "What Should We Keep, Review, or Simplify?",
     },
@@ -94,6 +94,7 @@ test("each product has required numeric business measures", () => {
     expect(product.value).toBeGreaterThan(0);
     expect(product.units).toBeGreaterThan(0);
     expect(product.totalProductUnits).toBeGreaterThanOrEqual(product.units);
+    expect(product.indicativeGmPct).toBeCloseTo(product.indicativeGm / product.value, 5);
     expect(product.skuCount).toBeGreaterThan(0);
     expect(product.flaCount).toBeGreaterThan(0);
   }
