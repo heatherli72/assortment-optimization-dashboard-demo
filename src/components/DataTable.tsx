@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Filter, X } from "lucide-react";
 import { downloadExcel } from "../utils/download";
 
@@ -28,6 +28,8 @@ interface ColumnFilterState {
   values: string[];
 }
 
+const pageSize = 100;
+
 export function DataTable<T>({
   columns,
   rows,
@@ -44,6 +46,7 @@ export function DataTable<T>({
   const [columnFilters, setColumnFilters] = useState<Record<string, ColumnFilterState>>({});
   const [openFilterKey, setOpenFilterKey] = useState<string | null>(null);
   const [draggedKey, setDraggedKey] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
   const orderedColumns = useMemo(
     () =>
       columnOrder
@@ -108,6 +111,17 @@ export function DataTable<T>({
       return direction === "asc" ? result : -result;
     });
   }, [direction, filteredRows, orderedColumns, sortKey]);
+  const pageCount = Math.max(Math.ceil(sortedRows.length / pageSize), 1);
+  const safePage = Math.min(page, pageCount - 1);
+  const pageStart = safePage * pageSize;
+  const pageRows = sortedRows.slice(pageStart, pageStart + pageSize);
+  const pageEnd = pageStart + pageRows.length;
+
+  useEffect(() => {
+    if (page > pageCount - 1) {
+      setPage(pageCount - 1);
+    }
+  }, [page, pageCount]);
 
   const moveColumn = (targetKey: string) => {
     if (!draggedKey || draggedKey === targetKey) return;
@@ -170,6 +184,15 @@ export function DataTable<T>({
         <button type="button" onClick={() => downloadExcel(exportFilename, exportRows)}>
           Export Excel
         </button>
+        <div className="table-pagination" aria-label="Table pagination">
+          <span>{sortedRows.length ? `${pageStart + 1}-${pageEnd} of ${sortedRows.length}` : "0 of 0"}</span>
+          <button type="button" disabled={safePage === 0} onClick={() => setPage((current) => Math.max(current - 1, 0))}>
+            Previous
+          </button>
+          <button type="button" disabled={safePage >= pageCount - 1} onClick={() => setPage((current) => Math.min(current + 1, pageCount - 1))}>
+            Next
+          </button>
+        </div>
       </div>
       <div className="table-wrap">
         <table className="data-table">
@@ -245,7 +268,7 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody>
-            {sortedRows.map((row) => (
+            {pageRows.map((row) => (
               <tr key={getRowId(row)}>
                 {orderedColumns.map((column) => (
                   <td

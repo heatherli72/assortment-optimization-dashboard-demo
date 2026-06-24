@@ -21,6 +21,7 @@ interface ParetoChartProps {
 }
 
 const segmentClass = { A: "segment-a", B: "segment-b", C: "segment-c" } as const;
+const defaultVisibleCount = 80;
 
 export function ParetoChart({
   rows,
@@ -36,7 +37,7 @@ export function ParetoChart({
     y: number;
     row: ParetoChartProps["rows"][number];
   } | null>(null);
-  const [visibleRange, setVisibleRange] = useState<[number, number]>([0, Math.max(rows.length - 1, 0)]);
+  const [visibleRange, setVisibleRange] = useState<[number, number]>([0, Math.min(Math.max(rows.length - 1, 0), defaultVisibleCount - 1)]);
   const width = 860;
   const height = 320;
   const pad = { top: 34, right: 40, bottom: 30, left: 52 };

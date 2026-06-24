@@ -5,6 +5,9 @@ export interface ActionRecommendation {
   reason: string;
 }
 
+const comparableGmPct = (value: number | null) => value ?? Number.NEGATIVE_INFINITY;
+const isTailLifecycle = (lifecycle: string) => /tail|end of life|dead/i.test(lifecycle);
+
 export function getFgSkuAction(
   sku: FgSkuRecord,
   productTotals: { value: number; units: number; indicativeGm: number },
@@ -12,10 +15,11 @@ export function getFgSkuAction(
   const valueShare = productTotals.value ? sku.value / productTotals.value : 0;
   const unitsShare = productTotals.units ? sku.units / productTotals.units : 0;
   const gmShare = productTotals.indicativeGm ? sku.indicativeGm / productTotals.indicativeGm : 0;
+  const gmPct = comparableGmPct(sku.indicativeGmPct);
 
   const lowContribution = unitsShare < 0.05 && valueShare < 0.05;
-  const costlyOrComplex = sku.indicativeGmPct < 0.25 || sku.cogsPerMlKg > 1.2 || sku.flaCount >= 4;
-  const tailComplexity = sku.lifecycle === "Tail" && costlyOrComplex && unitsShare < 0.35;
+  const costlyOrComplex = gmPct < 0.25 || sku.cogsPerMlKg > 1.2 || sku.flaCount >= 4;
+  const tailComplexity = isTailLifecycle(sku.lifecycle) && costlyOrComplex && unitsShare < 0.35;
 
   if ((lowContribution && costlyOrComplex) || tailComplexity) {
     return {
@@ -24,7 +28,7 @@ export function getFgSkuAction(
     };
   }
 
-  if ((valueShare >= 0.2 || unitsShare >= 0.2 || gmShare >= 0.2) && sku.indicativeGmPct >= 0.25 && sku.cogsPerMlKg <= 1.2) {
+  if ((valueShare >= 0.2 || unitsShare >= 0.2 || gmShare >= 0.2) && gmPct >= 0.25 && sku.cogsPerMlKg <= 1.2) {
     return { action: "Keep", reason: "" };
   }
 
@@ -45,7 +49,7 @@ export function getPlvSkuAction(
     return { action: "Keep", reason: "" };
   }
 
-  const tailSampleBurden = sku.lifecycle === "Tail" && sku.cogsPerMlKg > 0.8 && sku.flaCount >= 4 && unitsShare < 0.35;
+  const tailSampleBurden = isTailLifecycle(sku.lifecycle) && sku.cogsPerMlKg > 0.8 && sku.flaCount >= 4 && unitsShare < 0.35;
 
   if (
     (unitsShare < 0.08 && (sku.cogsPerMlKg > 0.8 || overlappingRole || sku.channelCovered.length <= 1)) ||

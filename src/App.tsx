@@ -3,8 +3,8 @@ import { filterFgSkus, filterPlvSkus, filterProducts, uniqueValues, defaultFilte
 import { AppShell } from "./components/AppShell";
 import { FilterBar } from "./components/FilterBar";
 import { ScopeDrawer } from "./components/ScopeDrawer";
-import { mockFgSkus, mockPlvSkus, mockProducts } from "./data/mockData";
-import type { DashboardPageId, FilterState } from "./domain/types";
+import { realFgSkus, realPlvSkus, realProducts } from "./data/realData";
+import type { DashboardPageId, FgSkuRecord, FilterState, PlvSkuRecord, ProductRecord } from "./domain/types";
 import { CoreTailPage, coreTailScopeSections } from "./pages/CoreTailPage";
 import { FgSkuDeepDivePage } from "./pages/FgSkuDeepDivePage";
 import { FgVarietyPage } from "./pages/FgVarietyPage";
@@ -17,24 +17,33 @@ import { fgScopeSections, fgSkuScopeSections, plvScopeSections, plvSkuScopeSecti
 export default function App() {
   const [currentPageId, setCurrentPageId] = useState<DashboardPageId>("overview");
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
-  const filteredProducts = useMemo(() => filterProducts(mockProducts, filters), [filters]);
-  const benchmarkProducts = useMemo(() => filterProducts(mockProducts, { ...filters, productSearch: "" }), [filters]);
-  const filteredFgSkus = useMemo(() => filterFgSkus(mockFgSkus, mockProducts, filters), [filters]);
-  const filteredPlvSkus = useMemo(() => filterPlvSkus(mockPlvSkus, mockProducts, filters), [filters]);
+  const [selectedProductId, setSelectedProductId] = useState("");
+  const [deepDiveProductSearch, setDeepDiveProductSearch] = useState("");
+  const benchmarkProducts = useMemo(() => filterProducts(realProducts, { ...filters, productSearch: "" }), [filters]);
   const showProductSearch = currentPageId === "fg-sku-deep-dive" || currentPageId === "plv-sku-deep-dive";
-  const timePeriods = uniqueValues(mockProducts, (row) => row.timePeriod);
-  const channels = uniqueValues(mockProducts, (row) => row.channelLvl1);
-  const brands = uniqueValues(mockProducts, (row) => row.brand);
-  const categories = uniqueValues(mockProducts, (row) => row.category);
+  const activeFilters = useMemo(
+    () => ({ ...filters, productSearch: showProductSearch ? deepDiveProductSearch : "" }),
+    [deepDiveProductSearch, filters, showProductSearch],
+  );
+  const filteredProducts = useMemo(() => filterProducts(realProducts, activeFilters), [activeFilters]);
+  const filteredFgSkus = useMemo(() => filterFgSkus(realFgSkus, realProducts, activeFilters), [activeFilters]);
+  const filteredPlvSkus = useMemo(() => filterPlvSkus(realPlvSkus, realProducts, activeFilters), [activeFilters]);
+  const timePeriods = uniqueValues(realProducts, (row) => row.timePeriod).filter((value) => value !== "All");
+  const channels = uniqueValues(realProducts, (row) => row.channelLvl1).filter((value) => value !== "All");
+  const brands = uniqueValues(realProducts, (row) => row.brand);
+  const categories = uniqueValues(realProducts, (row) => row.category);
+  const lifecycleRows: Array<ProductRecord | FgSkuRecord | PlvSkuRecord> =
+    currentPageId === "fg-sku-deep-dive" ? realFgSkus : currentPageId === "plv-sku-deep-dive" ? realPlvSkus : realProducts;
+  const lifecycles = uniqueValues(lifecycleRows, (row) => row.lifecycle).filter((value) => value !== "All");
   const productOptions = uniqueValues(
-    filterProducts(mockProducts, { ...filters, productSearch: "" }),
+    filterProducts(realProducts, { ...filters, lifecycle: [], productSearch: "" }),
     (row) => row.productLvl1,
   );
   const filterFieldsByPage: Partial<
     Record<DashboardPageId, Array<"timePeriod" | "channelLvl1" | "brand" | "category" | "lifecycle" | "abcCategory" | "productSearch">>
   > = {
-    "core-tail": ["timePeriod", "channelLvl1", "brand", "category", "abcCategory"],
-    "fg-variety": ["timePeriod", "channelLvl1", "brand", "category", "abcCategory"],
+    "core-tail": ["timePeriod", "channelLvl1", "brand", "category", "abcCategory", "lifecycle"],
+    "fg-variety": ["timePeriod", "channelLvl1", "brand", "category", "abcCategory", "lifecycle"],
     "fg-sku-deep-dive": ["timePeriod", "channelLvl1", "brand", "category", "abcCategory", "lifecycle", "productSearch"],
     "plv-support": ["timePeriod", "channelLvl1", "brand", "category", "abcCategory", "lifecycle"],
     "sample-complexity": ["timePeriod", "channelLvl1", "brand", "category", "abcCategory", "lifecycle"],
@@ -48,9 +57,17 @@ export default function App() {
     "sample-complexity": { title: "PLV Complexity scope", sections: plvScopeSections },
     "plv-sku-deep-dive": { title: "PLV SKU Deep Dive scope", sections: plvSkuScopeSections },
   };
-  const openProductDeepDive = (pageId: DashboardPageId, productName: string) => {
-    setFilters((current) => ({ ...current, productSearch: productName }));
+  const updateFilters = (nextFilters: FilterState) => {
+    setFilters(nextFilters);
+  };
+  const openProductDeepDive = (pageId: DashboardPageId, product: ProductRecord) => {
+    setSelectedProductId(product.id);
+    setDeepDiveProductSearch(product.productLvl1);
     setCurrentPageId(pageId);
+  };
+  const updateDeepDiveProductSearch = (value: string) => {
+    setDeepDiveProductSearch(value);
+    setSelectedProductId("");
   };
 
   const renderPage = () => {
@@ -62,7 +79,7 @@ export default function App() {
       return <FgVarietyPage products={filteredProducts} onOpenProduct={(product) => openProductDeepDive("fg-sku-deep-dive", product)} />;
     }
     if (currentPageId === "fg-sku-deep-dive") {
-      return <FgSkuDeepDivePage products={filteredProducts} benchmarkProducts={benchmarkProducts} fgSkus={filteredFgSkus} selectedProductName={filters.productSearch} />;
+      return <FgSkuDeepDivePage products={filteredProducts} benchmarkProducts={benchmarkProducts} fgSkus={filteredFgSkus} selectedProductId={selectedProductId} selectedProductName={deepDiveProductSearch} />;
     }
     if (currentPageId === "plv-support") {
       return <PlvSupportPage products={filteredProducts} onOpenProduct={(product) => openProductDeepDive("plv-sku-deep-dive", product)} />;
@@ -70,23 +87,35 @@ export default function App() {
     if (currentPageId === "sample-complexity") {
       return <SampleComplexityPage products={filteredProducts} onOpenProduct={(product) => openProductDeepDive("plv-sku-deep-dive", product)} />;
     }
-    return <PlvSkuDeepDivePage products={filteredProducts} benchmarkProducts={benchmarkProducts} plvSkus={filteredPlvSkus} selectedProductName={filters.productSearch} />;
+    return <PlvSkuDeepDivePage products={filteredProducts} benchmarkProducts={benchmarkProducts} plvSkus={filteredPlvSkus} selectedProductId={selectedProductId} selectedProductName={deepDiveProductSearch} />;
   };
   const currentScope = scopeByPage[currentPageId];
 
   return (
-    <AppShell currentPageId={currentPageId} onNavigate={setCurrentPageId} onClearFilters={() => setFilters(defaultFilters)}>
+    <AppShell
+      currentPageId={currentPageId}
+      onNavigate={setCurrentPageId}
+      onClearFilters={() => {
+        setSelectedProductId("");
+        setDeepDiveProductSearch("");
+        setFilters(defaultFilters);
+      }}
+    >
       {currentPageId !== "overview" ? (
         <FilterBar
           filters={filters}
-          onChange={setFilters}
+          onChange={updateFilters}
           showProductSearch={showProductSearch}
           fields={filterFieldsByPage[currentPageId]}
           timePeriods={timePeriods}
           brands={brands}
           categories={categories}
           channels={channels}
+          lifecycles={lifecycles}
           productOptions={productOptions}
+          productSearchValue={deepDiveProductSearch}
+          onProductSearchChange={updateDeepDiveProductSearch}
+          onClearProductSearch={() => updateDeepDiveProductSearch("")}
           action={currentScope ? <ScopeDrawer title={currentScope.title} sections={currentScope.sections} /> : null}
         />
       ) : null}

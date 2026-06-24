@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { getFgSkuAction } from "../analytics/actions";
 import { buildParetoRows } from "../analytics/aggregations";
-import { currency, percent, wholeNumber } from "../analytics/formatters";
+import { currency, formatNullablePercent, percent, wholeNumber } from "../analytics/formatters";
 import { ActionBadge } from "../components/ActionBadge";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { KpiCard } from "../components/KpiCard";
@@ -15,19 +15,24 @@ interface FgSkuDeepDivePageProps {
   products: ProductRecord[];
   benchmarkProducts: ProductRecord[];
   fgSkus: FgSkuRecord[];
+  selectedProductId: string;
   selectedProductName: string;
 }
 
-const findSelectedProduct = (products: ProductRecord[], productName: string) => {
+const findSelectedProduct = (products: ProductRecord[], productId: string, productName: string) => {
+  if (productId) {
+    const byId = products.find((product) => product.id === productId);
+    if (byId) return byId;
+  }
   const query = productName.trim().toLowerCase();
   if (!query) return undefined;
   return products.find((product) => product.productLvl1.toLowerCase() === query) ?? (products.length === 1 ? products[0] : undefined);
 };
 
-export function FgSkuDeepDivePage({ products, benchmarkProducts, fgSkus, selectedProductName }: FgSkuDeepDivePageProps) {
+export function FgSkuDeepDivePage({ products, benchmarkProducts, fgSkus, selectedProductId, selectedProductName }: FgSkuDeepDivePageProps) {
   const [metric, setMetric] = useState<MetricKey>("value");
   const [selectedSkuId, setSelectedSkuId] = useState<string | null>(null);
-  const selectedProduct = findSelectedProduct(products, selectedProductName);
+  const selectedProduct = findSelectedProduct(products, selectedProductId, selectedProductName);
   const productSkus = fgSkus.filter((sku) => sku.productId === selectedProduct?.id);
   const rows = useMemo(
     () =>
@@ -66,7 +71,7 @@ export function FgSkuDeepDivePage({ products, benchmarkProducts, fgSkus, selecte
     { key: "value", header: "Sales Value", align: "right", value: (row) => currency.format(row.value), sortValue: (row) => row.value },
     { key: "units", header: "Units", align: "right", value: (row) => wholeNumber.format(row.units), sortValue: (row) => row.units },
     { key: "gm", header: "Indicative GM", align: "right", value: (row) => currency.format(row.indicativeGm), sortValue: (row) => row.indicativeGm },
-    { key: "gmPct", header: "Indicative GM %", align: "right", value: (row) => percent.format(row.indicativeGmPct), sortValue: (row) => row.indicativeGmPct },
+    { key: "gmPct", header: "Indicative GM %", align: "right", value: (row) => formatNullablePercent(row.indicativeGmPct), sortValue: (row) => row.indicativeGmPct ?? Number.NEGATIVE_INFINITY },
     { key: "rsp", header: "RSP", align: "right", value: (row) => currency.format(row.rsp), sortValue: (row) => row.rsp },
     { key: "cogs", header: "COGS", align: "right", value: (row) => currency.format(row.map), sortValue: (row) => row.map },
     { key: "cogsRate", header: "COGS per ml/kg", align: "right", value: (row) => currency.format(row.cogsPerMlKg), sortValue: (row) => row.cogsPerMlKg },

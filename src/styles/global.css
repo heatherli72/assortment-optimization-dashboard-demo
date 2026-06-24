@@ -315,7 +315,9 @@ select:focus-visible {
 
 .filter-bar {
   align-items: end;
-  background: rgba(255, 255, 255, 0.97);
+  background:
+    linear-gradient(135deg, rgba(253, 232, 245, 0.78), rgba(239, 233, 255, 0.78) 48%, rgba(230, 248, 252, 0.82)),
+    rgba(255, 255, 255, 0.97);
   border-bottom: 1px solid var(--color-border);
   box-shadow: 0 10px 28px rgba(55, 67, 105, 0.07);
   display: grid;
@@ -329,7 +331,8 @@ select:focus-visible {
 
 .filter-bar label,
 .inline-select,
-.metric-switch {
+.metric-switch,
+.multi-filter {
   color: var(--color-muted);
   display: grid;
   font-size: 12px;
@@ -337,8 +340,116 @@ select:focus-visible {
   gap: 5px;
 }
 
+.multi-filter {
+  position: relative;
+}
+
+.multi-filter summary {
+  align-content: center;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(191, 208, 231, 0.9);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: grid;
+  gap: 3px;
+  list-style: none;
+  min-height: 44px;
+  padding: 7px 10px;
+}
+
+.multi-filter summary::-webkit-details-marker {
+  display: none;
+}
+
+.multi-filter summary:hover {
+  border-color: rgba(122, 77, 232, 0.36);
+  box-shadow: 0 8px 18px rgba(55, 67, 105, 0.08);
+}
+
+.multi-filter summary span {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.multi-filter summary b {
+  color: var(--color-ink);
+  font-size: 12px;
+  font-weight: 850;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.multi-filter-menu {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 4px;
+  left: 0;
+  max-height: 280px;
+  min-width: min(280px, 86vw);
+  overflow: auto;
+  padding: 8px;
+  position: absolute;
+  top: calc(100% + 6px);
+  z-index: 60;
+}
+
+.multi-filter-menu button {
+  background: var(--color-surface-2);
+  color: var(--color-strategy);
+  font-size: 12px;
+  font-weight: 850;
+  min-height: 30px;
+  text-align: left;
+}
+
+.multi-filter-menu label {
+  align-items: center;
+  color: var(--color-ink);
+  display: flex;
+  font-size: 12px;
+  gap: 8px;
+  min-height: 28px;
+}
+
+.multi-filter-menu input {
+  min-height: auto;
+  padding: 0;
+}
+
+.multi-filter-menu p {
+  color: var(--color-muted);
+  margin: 0;
+}
+
 .filter-search {
   grid-column: span 2;
+}
+
+.filter-search-input {
+  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+}
+
+.filter-search-input button {
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.filter-search-input button:hover {
+  border-color: rgba(122, 77, 232, 0.36);
+  color: var(--color-strategy);
 }
 
 .filter-action-slot {
@@ -766,6 +877,12 @@ select:focus-visible {
   font-weight: 800;
   min-height: 28px;
   padding: 4px 8px;
+}
+
+.chart-actions button:disabled,
+.table-tools button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
 }
 
 .selection-clear {
@@ -1222,6 +1339,16 @@ select:focus-visible {
   gap: 4px;
   max-width: 260px;
   width: min(42vw, 260px);
+}
+
+.table-pagination {
+  align-items: center;
+  color: var(--color-muted);
+  display: flex;
+  font-size: 12px;
+  font-weight: 750;
+  gap: var(--space-1);
+  margin-left: auto;
 }
 
 .table-wrap {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { summarizeFgVariety } from "../analytics/aggregations";
-import { currency, percent, wholeNumber } from "../analytics/formatters";
+import { currency, formatNullablePercent, wholeNumber } from "../analytics/formatters";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { KpiCard } from "../components/KpiCard";
 import { MetricSwitch } from "../components/MetricSwitch";
@@ -10,7 +10,7 @@ import { getProductMetricValue, metricFormatter, metricLabel, metricOptions, var
 
 interface FgVarietyPageProps {
   products: ProductRecord[];
-  onOpenProduct: (productName: string) => void;
+  onOpenProduct: (product: ProductRecord) => void;
 }
 
 export function FgVarietyPage({ products, onOpenProduct }: FgVarietyPageProps) {
@@ -20,14 +20,14 @@ export function FgVarietyPage({ products, onOpenProduct }: FgVarietyPageProps) {
   const summary = summarizeFgVariety(products);
   const yLabel = yMetric === "skuCount" ? "FG SKU Count" : "FG FLA Count";
   const columns: Array<DataTableColumn<ProductRecord>> = [
-    { key: "product", header: "Product L1", sticky: true, value: (row) => <button className="product-link" type="button" onClick={() => onOpenProduct(row.productLvl1)}>{row.productLvl1}</button>, sortValue: (row) => row.productLvl1 },
+    { key: "product", header: "Product L1", sticky: true, value: (row) => <button className="product-link" type="button" onClick={() => onOpenProduct(row)}>{row.productLvl1}</button>, sortValue: (row) => row.productLvl1 },
     { key: "brand", header: "Brand", value: (row) => row.brand, sortValue: (row) => row.brand },
     { key: "category", header: "Category", value: (row) => row.category, sortValue: (row) => row.category },
     { key: "abc", header: "ABC Type", value: (row) => row.abcCategory, sortValue: (row) => row.abcCategory },
     { key: "value", header: "Sales Value", align: "right", value: (row) => currency.format(row.value), sortValue: (row) => row.value },
     { key: "units", header: "Units", align: "right", value: (row) => wholeNumber.format(row.units), sortValue: (row) => row.units },
     { key: "gm", header: "Indicative GM", align: "right", value: (row) => currency.format(row.indicativeGm), sortValue: (row) => row.indicativeGm },
-    { key: "gmPct", header: "Indicative GM %", align: "right", value: (row) => percent.format(row.indicativeGmPct), sortValue: (row) => row.indicativeGmPct },
+    { key: "gmPct", header: "Indicative GM %", align: "right", value: (row) => formatNullablePercent(row.indicativeGmPct), sortValue: (row) => row.indicativeGmPct ?? Number.NEGATIVE_INFINITY },
     { key: "sku", header: "FG SKU Count", align: "right", value: (row) => row.skuCount, sortValue: (row) => row.skuCount },
     { key: "fla", header: "FG FLA Count", align: "right", value: (row) => row.flaCount, sortValue: (row) => row.flaCount },
     { key: "salesPerSku", header: "Sales per SKU", align: "right", value: (row) => currency.format(row.value / row.skuCount), sortValue: (row) => row.value / row.skuCount },

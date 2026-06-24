@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { buildParetoRows, summarizeCoreTail } from "../analytics/aggregations";
-import { currency, percent, wholeNumber } from "../analytics/formatters";
+import { currency, formatNullablePercent, percent, wholeNumber } from "../analytics/formatters";
 import { DataTable, type DataTableColumn } from "../components/DataTable";
 import { KpiCard } from "../components/KpiCard";
 import { MetricSwitch } from "../components/MetricSwitch";
@@ -11,7 +11,7 @@ import { metricFormatter, metricLabel, metricOptions } from "./pageHelpers";
 interface CoreTailPageProps {
   products: ProductRecord[];
   fgSkus: FgSkuRecord[];
-  onOpenProduct: (productName: string) => void;
+  onOpenProduct: (product: ProductRecord) => void;
 }
 
 export const coreTailScopeSections = [
@@ -89,7 +89,7 @@ export function CoreTailPage({ products, fgSkus, onOpenProduct }: CoreTailPagePr
     }),
   );
   const columns: Array<DataTableColumn<ProductRecord>> = [
-    { key: "product", header: "Product L1", sticky: true, value: (row) => <button className="product-link" type="button" onClick={() => onOpenProduct(row.productLvl1)}>{row.productLvl1}</button>, sortValue: (row) => row.productLvl1 },
+    { key: "product", header: "Product L1", sticky: true, value: (row) => <button className="product-link" type="button" onClick={() => onOpenProduct(row)}>{row.productLvl1}</button>, sortValue: (row) => row.productLvl1 },
     { key: "brand", header: "Brand", value: (row) => row.brand, sortValue: (row) => row.brand },
     { key: "category", header: "Category", value: (row) => row.category, sortValue: (row) => row.category },
     { key: "abc", header: "ABC Type", value: (row) => row.abcCategory, sortValue: (row) => row.abcCategory },
@@ -99,7 +99,7 @@ export function CoreTailPage({ products, fgSkus, onOpenProduct }: CoreTailPagePr
     { key: "unitsShare", header: "Units contribution to brand", align: "right", value: (row) => percent.format(brandContribution(row, products, "units")), sortValue: (row) => brandContribution(row, products, "units") },
     { key: "gm", header: "Indicative GM", align: "right", value: (row) => currency.format(row.indicativeGm), sortValue: (row) => row.indicativeGm },
     { key: "gmShare", header: "Indicative GM contribution to brand", align: "right", value: (row) => percent.format(brandContribution(row, products, "indicativeGm")), sortValue: (row) => brandContribution(row, products, "indicativeGm") },
-    { key: "gmPct", header: "Indicative GM %", align: "right", value: (row) => percent.format(row.indicativeGmPct), sortValue: (row) => row.indicativeGmPct },
+    { key: "gmPct", header: "Indicative GM %", align: "right", value: (row) => formatNullablePercent(row.indicativeGmPct), sortValue: (row) => row.indicativeGmPct ?? Number.NEGATIVE_INFINITY },
     { key: "minRsp", header: "Min RSP", align: "right", value: (row) => currency.format(skuStats.get(row.id)?.rsp.min ?? row.rsp), sortValue: (row) => skuStats.get(row.id)?.rsp.min ?? row.rsp },
     { key: "maxRsp", header: "Max RSP", align: "right", value: (row) => currency.format(skuStats.get(row.id)?.rsp.max ?? row.rsp), sortValue: (row) => skuStats.get(row.id)?.rsp.max ?? row.rsp },
     { key: "minMap", header: "Min COGS", align: "right", value: (row) => currency.format(skuStats.get(row.id)?.map.min ?? row.map), sortValue: (row) => skuStats.get(row.id)?.map.min ?? row.map },

@@ -24,7 +24,7 @@ const getY = (product: ProductRecord, yMetric: PlvSupportY) => {
   return ratio(product.plvUnits, product.totalProductUnits);
 };
 
-export function PlvSupportPage({ products, onOpenProduct }: { products: ProductRecord[]; onOpenProduct: (productName: string) => void }) {
+export function PlvSupportPage({ products, onOpenProduct }: { products: ProductRecord[]; onOpenProduct: (product: ProductRecord) => void }) {
   const [xMetric, setXMetric] = useState<MetricKey>("units");
   const [yMetric, setYMetric] = useState<PlvSupportY>("plvUnitsShare");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export function PlvSupportPage({ products, onOpenProduct }: { products: ProductR
   const totalProductCost = analysisProducts.reduce((sum, product) => sum + product.totalProductCost, 0);
   const totalFgValue = analysisProducts.reduce((sum, product) => sum + product.value, 0);
   const columns: Array<DataTableColumn<ProductRecord>> = [
-    { key: "product", header: "Product L1", sticky: true, value: (row) => <button className="product-link" type="button" onClick={() => onOpenProduct(row.productLvl1)}>{row.productLvl1}</button>, sortValue: (row) => row.productLvl1 },
+    { key: "product", header: "Product L1", sticky: true, value: (row) => <button className="product-link" type="button" onClick={() => onOpenProduct(row)}>{row.productLvl1}</button>, sortValue: (row) => row.productLvl1 },
     { key: "brand", header: "Brand", value: (row) => row.brand, sortValue: (row) => row.brand },
     { key: "category", header: "Category", value: (row) => row.category, sortValue: (row) => row.category },
     { key: "abc", header: "ABC Type", value: (row) => row.abcCategory, sortValue: (row) => row.abcCategory },
@@ -56,7 +56,7 @@ export function PlvSupportPage({ products, onOpenProduct }: { products: ProductR
   return (
     <main className="page">
       <section className="kpi-grid">
-        <KpiCard tone="plv" group="mix" label="Products with PLV" value={wholeNumber.format(summary.totalProductCount)} context="Filtered PLV products" />
+        <KpiCard label="Products with PLV" value={wholeNumber.format(summary.totalProductCount)} context="Filtered PLV products" />
         <KpiCard group="mix" label="PLV SKU Count" value={wholeNumber.format(summary.totalPlvSkuCount)} />
         <KpiCard group="mix" label="PLV SKU / Total SKU" value={percent.format(ratio(summary.totalPlvSkuCount, totalProductSkuCount))} />
         <KpiCard group="volume" label="PLV units" value={wholeNumber.format(summary.totalPlvUnits)} />

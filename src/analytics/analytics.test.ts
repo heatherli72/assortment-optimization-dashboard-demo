@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { getFgSkuAction, getPlvSkuAction } from "./actions";
 import { buildParetoRows, summarizeCoreTail } from "./aggregations";
 import { filterProducts } from "./filters";
-import { formatMetric } from "./formatters";
+import { formatMetric, percent } from "./formatters";
 import { mockFgSkus, mockPlvSkus, mockProducts } from "../data/mockData";
 import { defaultFilters } from "./filters";
 
@@ -14,12 +14,17 @@ describe("analytics helpers", () => {
   test("filters products by brand, category, and lifecycle", () => {
     const rows = filterProducts(mockProducts, {
       ...defaultFilters,
-      brand: "Aurora",
-      category: "Cream",
-      lifecycle: "Tail",
+      brand: ["Aurora"],
+      category: ["Cream"],
+      lifecycle: ["Tail"],
     });
 
     expect(rows.map((row) => row.productLvl1)).toEqual(["Repair Cream"]);
+  });
+
+  test("formats percentages with one decimal place", () => {
+    expect(percent.format(0)).toBe("0.0%");
+    expect(percent.format(0.126)).toBe("12.6%");
   });
 
   test("builds descending pareto rows with cumulative contribution", () => {

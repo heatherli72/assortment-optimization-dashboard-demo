@@ -9,6 +9,7 @@ export const wholeNumber = new Intl.NumberFormat("en-US", {
 
 export const percent = new Intl.NumberFormat("en-US", {
   style: "percent",
+  minimumFractionDigits: 1,
   maximumFractionDigits: 1,
 });
 
@@ -17,6 +18,10 @@ export const currency = new Intl.NumberFormat("en-US", {
   currency: "USD",
   maximumFractionDigits: 0,
 });
+
+export function formatNullablePercent(value: number | null | undefined) {
+  return value == null ? "N/A" : percent.format(value);
+}
 
 export function formatMetric(
   value: number,

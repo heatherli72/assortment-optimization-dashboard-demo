@@ -15,18 +15,23 @@ interface PlvSkuDeepDivePageProps {
   products: ProductRecord[];
   benchmarkProducts: ProductRecord[];
   plvSkus: PlvSkuRecord[];
+  selectedProductId: string;
   selectedProductName: string;
 }
 
-const findSelectedProduct = (products: ProductRecord[], productName: string) => {
+const findSelectedProduct = (products: ProductRecord[], productId: string, productName: string) => {
+  if (productId) {
+    const byId = products.find((product) => product.id === productId);
+    if (byId) return byId;
+  }
   const query = productName.trim().toLowerCase();
   if (!query) return undefined;
   return products.find((product) => product.productLvl1.toLowerCase() === query) ?? (products.length === 1 ? products[0] : undefined);
 };
 
-export function PlvSkuDeepDivePage({ products, benchmarkProducts, plvSkus, selectedProductName }: PlvSkuDeepDivePageProps) {
+export function PlvSkuDeepDivePage({ products, benchmarkProducts, plvSkus, selectedProductId, selectedProductName }: PlvSkuDeepDivePageProps) {
   const [selectedSkuId, setSelectedSkuId] = useState<string | null>(null);
-  const selectedProduct = findSelectedProduct(products, selectedProductName);
+  const selectedProduct = findSelectedProduct(products, selectedProductId, selectedProductName);
   const productSkus = plvSkus.filter((sku) => sku.productId === selectedProduct?.id);
   const rows = useMemo(
     () =>
@@ -97,7 +102,7 @@ export function PlvSkuDeepDivePage({ products, benchmarkProducts, plvSkus, selec
         <KpiCard label="ABC Type" value={selectedProduct?.abcCategory ?? "-"} />
         <KpiCard label="PLV SKU Count" value={wholeNumber.format(rows.length)} context={`Brand benchmark ${brandPlvSkuBenchmark.toFixed(1)}`} />
         <KpiCard label="PLV FLA Count" value={wholeNumber.format(selectedProduct?.plvFlaCount ?? 0)} context={`Brand benchmark ${brandPlvFlaBenchmark.toFixed(1)}`} />
-        <KpiCard tone="plv" label="Products with PLV" value={wholeNumber.format(brandProductsWithPlv.length)} context={`${brandProducts.length} total brand products`} />
+        <KpiCard label="Products with PLV in benchmark brand" value={wholeNumber.format(brandProductsWithPlv.length)} context={selectedProduct.brand} />
         <KpiCard group="volume" label="PLV units contribution to brand" value={percent.format(brandPlvUnits ? (selectedProduct?.plvUnits ?? 0) / brandPlvUnits : 0)} />
         <KpiCard group="volume" label="Units rank out of total brand" value={plvUnitsRank ? `${plvUnitsRank}/${brandProducts.length}` : "-"} />
       </section>
@@ -133,6 +138,8 @@ export function PlvSkuDeepDivePage({ products, benchmarkProducts, plvSkus, selec
           <MatrixChart
             rows={rows.map((sku) => sku.skuCode)}
             columns={channels}
+            exportFilename="plv-channel-coverage-matrix"
+            exportLabel="Export Channel coverage data"
             activeCells={rows.flatMap((sku) =>
               sku.channelLvl2Covered.map((column) => ({
                 row: sku.skuCode,
@@ -147,6 +154,8 @@ export function PlvSkuDeepDivePage({ products, benchmarkProducts, plvSkus, selec
           <MatrixChart
             rows={rows.map((sku) => sku.skuCode)}
             columns={sampleTypes}
+            exportFilename="plv-sample-type-matrix"
+            exportLabel="Export Sample type data"
             activeCells={rows.map((sku) => ({
               row: sku.skuCode,
               column: sku.sampleType,

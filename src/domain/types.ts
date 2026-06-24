@@ -10,16 +10,16 @@ export type DashboardPageId =
 export type MetricKey = "value" | "units" | "indicativeGm";
 export type VarietyMetric = "skuCount" | "flaCount";
 export type ActionStatus = "Keep" | "Review" | "Simplify";
-export type Lifecycle = "Core" | "Growth" | "Mature" | "Tail" | "Exit";
+export type Lifecycle = string;
 export type AbcCategory = "A" | "B" | "C";
 
 export interface FilterState {
-  timePeriod: string;
-  channelLvl1: string;
-  brand: string;
-  category: string;
-  lifecycle: "All" | Lifecycle;
-  abcCategory: "All" | AbcCategory;
+  timePeriod: string[];
+  channelLvl1: string[];
+  brand: string[];
+  category: string[];
+  lifecycle: string[];
+  abcCategory: AbcCategory[];
   productSearch: string;
 }
 
@@ -35,7 +35,7 @@ export interface ProductRecord {
   value: number;
   units: number;
   indicativeGm: number;
-  indicativeGmPct: number;
+  indicativeGmPct: number | null;
   rsp: number;
   map: number;
   skuCount: number;
@@ -62,7 +62,7 @@ export interface FgSkuRecord {
   value: number;
   units: number;
   indicativeGm: number;
-  indicativeGmPct: number;
+  indicativeGmPct: number | null;
   rsp: number;
   map: number;
   cogsPerMlKg: number;
@@ -85,7 +85,7 @@ export interface PlvSkuRecord {
   lifecycle: Lifecycle;
   channelLvl2Covered: string[];
   channelCovered: string[];
-  sampleType: "Sachet" | "Deluxe Sample" | "Travel Size";
+  sampleType: string;
 }
 
 export interface DashboardPageMeta {

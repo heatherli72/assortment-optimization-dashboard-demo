@@ -1,26 +1,27 @@
 import type { FgSkuRecord, FilterState, PlvSkuRecord, ProductRecord } from "../domain/types";
 
 export const defaultFilters: FilterState = {
-  timePeriod: "All",
-  channelLvl1: "All",
-  brand: "All",
-  category: "All",
-  lifecycle: "All",
-  abcCategory: "All",
+  timePeriod: [],
+  channelLvl1: [],
+  brand: [],
+  category: [],
+  lifecycle: [],
+  abcCategory: [],
   productSearch: "",
 };
 
 const matchesSearch = (value: string, search: string) =>
   value.toLowerCase().includes(search.trim().toLowerCase());
+const matchesSelection = (selection: string[], value: string) => selection.length === 0 || selection.includes(value);
 
 export function filterProducts(products: ProductRecord[], filters: FilterState) {
   return products.filter((product) => {
-    if (filters.timePeriod !== "All" && product.timePeriod !== filters.timePeriod) return false;
-    if (filters.channelLvl1 !== "All" && product.channelLvl1 !== filters.channelLvl1) return false;
-    if (filters.brand !== "All" && product.brand !== filters.brand) return false;
-    if (filters.category !== "All" && product.category !== filters.category) return false;
-    if (filters.lifecycle !== "All" && product.lifecycle !== filters.lifecycle) return false;
-    if (filters.abcCategory !== "All" && product.abcCategory !== filters.abcCategory) return false;
+    if (!matchesSelection(filters.timePeriod, product.timePeriod)) return false;
+    if (!matchesSelection(filters.channelLvl1, product.channelLvl1)) return false;
+    if (!matchesSelection(filters.brand, product.brand)) return false;
+    if (!matchesSelection(filters.category, product.category)) return false;
+    if (!matchesSelection(filters.lifecycle, product.lifecycle)) return false;
+    if (!matchesSelection(filters.abcCategory, product.abcCategory)) return false;
     if (filters.productSearch.trim()) {
       return matchesSearch(product.productLvl1, filters.productSearch);
     }
@@ -33,11 +34,12 @@ export function filterFgSkus(
   products: ProductRecord[],
   filters: FilterState,
 ) {
-  const productIds = new Set(filterProducts(products, filters).map((product) => product.id));
+  const productIds = new Set(filterProducts(products, { ...filters, lifecycle: [] }).map((product) => product.id));
   return skus.filter((sku) => {
     if (!productIds.has(sku.productId)) return false;
-    if (filters.timePeriod !== "All" && sku.timePeriod !== filters.timePeriod) return false;
-    if (filters.channelLvl1 !== "All" && sku.channelLvl1 !== filters.channelLvl1) return false;
+    if (!matchesSelection(filters.timePeriod, sku.timePeriod)) return false;
+    if (!matchesSelection(filters.channelLvl1, sku.channelLvl1)) return false;
+    if (!matchesSelection(filters.lifecycle, sku.lifecycle)) return false;
     return true;
   });
 }
@@ -47,11 +49,12 @@ export function filterPlvSkus(
   products: ProductRecord[],
   filters: FilterState,
 ) {
-  const productIds = new Set(filterProducts(products, filters).map((product) => product.id));
+  const productIds = new Set(filterProducts(products, { ...filters, lifecycle: [] }).map((product) => product.id));
   return skus.filter((sku) => {
     if (!productIds.has(sku.productId)) return false;
-    if (filters.timePeriod !== "All" && sku.timePeriod !== filters.timePeriod) return false;
-    if (filters.channelLvl1 !== "All" && sku.channelLvl1 !== filters.channelLvl1) return false;
+    if (!matchesSelection(filters.timePeriod, sku.timePeriod)) return false;
+    if (!matchesSelection(filters.channelLvl1, sku.channelLvl1)) return false;
+    if (!matchesSelection(filters.lifecycle, sku.lifecycle)) return false;
     return true;
   });
 }

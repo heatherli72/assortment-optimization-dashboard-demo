@@ -14,7 +14,7 @@ const brandContribution = (product: ProductRecord, products: ProductRecord[]) =>
   return total ? product.value / total : 0;
 };
 
-export function SampleComplexityPage({ products, onOpenProduct }: { products: ProductRecord[]; onOpenProduct: (productName: string) => void }) {
+export function SampleComplexityPage({ products, onOpenProduct }: { products: ProductRecord[]; onOpenProduct: (product: ProductRecord) => void }) {
   const [yMetric, setYMetric] = useState<VarietyMetric>("skuCount");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const withPlv = products.filter((product) => product.plvSkuCount > 0);
@@ -22,7 +22,7 @@ export function SampleComplexityPage({ products, onOpenProduct }: { products: Pr
   const readY = (product: ProductRecord) => (yMetric === "skuCount" ? product.plvSkuCount : product.plvFlaCount);
   const yLabel = yMetric === "skuCount" ? "PLV SKU Count" : "PLV FLA Count";
   const columns: Array<DataTableColumn<ProductRecord>> = [
-    { key: "product", header: "Product L1", sticky: true, value: (row) => <button className="product-link" type="button" onClick={() => onOpenProduct(row.productLvl1)}>{row.productLvl1}</button>, sortValue: (row) => row.productLvl1 },
+    { key: "product", header: "Product L1", sticky: true, value: (row) => <button className="product-link" type="button" onClick={() => onOpenProduct(row)}>{row.productLvl1}</button>, sortValue: (row) => row.productLvl1 },
     { key: "brand", header: "Brand", value: (row) => row.brand, sortValue: (row) => row.brand },
     { key: "category", header: "Category", value: (row) => row.category, sortValue: (row) => row.category },
     { key: "abc", header: "ABC Type", value: (row) => row.abcCategory, sortValue: (row) => row.abcCategory },
